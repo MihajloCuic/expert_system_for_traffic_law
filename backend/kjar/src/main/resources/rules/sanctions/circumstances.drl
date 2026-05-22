@@ -1,0 +1,46 @@
+package sanctions;
+
+import com.ftn.sbnz.model.Sanction;
+import com.ftn.sbnz.model.ViolationContext;
+
+// ============================================================
+// LAYER 2 - AGGRAVATING AND MITIGATING CIRCUMSTANCES
+// Adjusts the Sanction produced in Layer 1.
+//
+// Direct setters are used (instead of modify) to avoid mutual
+// re-triggering between Layer 2 rules that all share the same
+// Sanction fact. When Layer 3 is added, replace direct setters
+// with a marker fact pattern + modify.
+// ============================================================
+
+rule "Aggravating: fled from scene"
+    when
+        $s   : Sanction($v : violation, $fine : finalFine, $points : finalPoints)
+        $ctx : ViolationContext(violation == $v, fledFromScene == true)
+    then
+        $s.setFinalFine((int)($fine * 1.3));
+        $s.setFinalPoints($points + 2);
+        $s.addExplanation("[Layer 2] Aggravating - fled from scene -> +30% fine, +2 points");
+        System.out.println("[FIRED] Aggravating: fled from scene");
+end
+
+rule "Aggravating: school zone"
+    when
+        $s   : Sanction($v : violation, $fine : finalFine, $points : finalPoints)
+        $ctx : ViolationContext(violation == $v, schoolZone == true)
+    then
+        $s.setFinalFine((int)($fine * 1.2));
+        $s.setFinalPoints($points + 1);
+        $s.addExplanation("[Layer 2] Aggravating - school zone -> +20% fine, +1 point");
+        System.out.println("[FIRED] Aggravating: school zone");
+end
+
+rule "Mitigating: self-reported"
+    when
+        $s   : Sanction($v : violation, $fine : finalFine)
+        $ctx : ViolationContext(violation == $v, selfReported == true)
+    then
+        $s.setFinalFine((int)($fine * 0.85));
+        $s.addExplanation("[Layer 2] Mitigating - self-reported -> -15% fine");
+        System.out.println("[FIRED] Mitigating: self-reported");
+end
