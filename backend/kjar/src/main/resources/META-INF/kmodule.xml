@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kmodule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://jboss.org/kie/6.0.0/kmodule">
+
+    <!-- Module 1 - Fine calculation (Mihajlo) -->
+    <kbase name="sanctionsKBase" packages="sanctions">
+        <ksession name="sanctionsKsession"/>
+    </kbase>
+
+    <!-- Module 2 - Fault determination (Milos)
+         CEP mode required for time-based events (ParticipantAction). -->
+    <kbase name="faultKBase" packages="fault" eventProcessingMode="stream">
+        <ksession name="faultKsession" clockType="realtime"/>
+    </kbase>
+
+</kmodule>
