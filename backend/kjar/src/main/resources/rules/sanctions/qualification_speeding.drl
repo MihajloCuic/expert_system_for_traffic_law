@@ -1,0 +1,358 @@
+package sanctions;
+
+import com.ftn.sbnz.model.Violation;
+import com.ftn.sbnz.model.Sanction;
+import com.ftn.sbnz.model.ViolationType;
+import com.ftn.sbnz.model.Location;
+import com.ftn.sbnz.model.Severity;
+import com.ftn.sbnz.model.VehicleCategory;
+
+// ============================================================
+// LAYER 1 - SPEEDING (rules 1-17)
+// ============================================================
+
+// --- Rules 1-6: SPEEDING in URBAN area ---
+
+rule "1 Speeding URBAN 10-20"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.URBAN,
+                       speedOverLimitKmH >= 10, speedOverLimitKmH <= 20)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 43, 45 par. 1 pts. 1-3 (penal art. 333)")
+            .severity(Severity.MINOR)
+            .fixedFine(5000)
+            .points(0)
+            .build();
+        s.addExplanation("[L1] Speeding URBAN 10-20 km/h over -> 5.000 RSD");
+        insert(s);
+        System.out.println("[FIRED] 1 Speeding URBAN 10-20");
+end
+
+rule "2 Speeding URBAN 21-30"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.URBAN,
+                       speedOverLimitKmH >= 21, speedOverLimitKmH <= 30)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 43, 45 par. 1 pts. 1-3 (penal art. 332a)")
+            .severity(Severity.PETTY)
+            .fixedFine(10000)
+            .points(0)
+            .build();
+        s.addExplanation("[L1] Speeding URBAN 21-30 km/h over -> 10.000 RSD");
+        insert(s);
+        System.out.println("[FIRED] 2 Speeding URBAN 21-30");
+end
+
+rule "3 Speeding URBAN 31-50"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.URBAN,
+                       speedOverLimitKmH >= 31, speedOverLimitKmH <= 50)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 43, 45 par. 1 pts. 1-3 (penal art. 332)")
+            .severity(Severity.MODERATE)
+            .fine(10000, 20000)
+            .points(4)
+            .drivingBanDays(30)
+            .build();
+        s.addExplanation("[L1] Speeding URBAN 31-50 km/h over -> 10.000-20.000 RSD + 4 points + 30 days ban");
+        insert(s);
+        System.out.println("[FIRED] 3 Speeding URBAN 31-50");
+end
+
+rule "4 Speeding URBAN 51-70"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.URBAN,
+                       speedOverLimitKmH >= 51, speedOverLimitKmH <= 70)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 43, 45 par. 1 pts. 1-3 (penal art. 331)")
+            .severity(Severity.MAJOR)
+            .fine(20000, 40000)
+            .prison(0, 30)
+            .alternativePenalty(true)
+            .points(7)
+            .drivingBanDays(120)
+            .build();
+        s.addExplanation("[L1] Speeding URBAN 51-70 km/h over -> 20-40k RSD OR prison <= 30 days + 7 points + 4 months ban");
+        insert(s);
+        System.out.println("[FIRED] 4 Speeding URBAN 51-70");
+end
+
+rule "5 Speeding URBAN 71-90"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.URBAN,
+                       speedOverLimitKmH >= 71, speedOverLimitKmH <= 90)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 43, 45 par. 1 pts. 1-3 (penal art. 330)")
+            .severity(Severity.SEVERE)
+            .fine(100000, 120000)
+            .prison(15, 30)
+            .alternativePenalty(true)
+            .points(14)
+            .drivingBanDays(240)
+            .build();
+        s.addExplanation("[L1] Speeding URBAN 71-90 km/h over -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban");
+        insert(s);
+        System.out.println("[FIRED] 5 Speeding URBAN 71-90");
+end
+
+rule "6 Speeding URBAN over 90 (reckless driving)"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.URBAN,
+                       speedOverLimitKmH > 90)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 43, 45 par. 1 pts. 1-3 (penal art. 329 - reckless driving)")
+            .severity(Severity.VIOLENT)
+            .fine(120000, 140000)
+            .prison(30, 60)
+            .communityService(240, 360)
+            .alternativePenalty(true)
+            .points(15)
+            .drivingBanDays(270)
+            .build();
+        s.addExplanation("[L1] Speeding URBAN > 90 km/h over -> 120-140k RSD + prison or community service + 15 points + 9 months ban (RECKLESS DRIVING)");
+        insert(s);
+        System.out.println("[FIRED] 6 Speeding URBAN > 90 (VIOLENT)");
+end
+
+// --- Rules 7-12: SPEEDING on OPEN ROAD ---
+
+rule "7 Speeding OPEN 10-20"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.OPEN_ROAD,
+                       speedOverLimitKmH >= 10, speedOverLimitKmH <= 20)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 44, 45 par. 1 pts. 1-3 (penal art. 333)")
+            .severity(Severity.MINOR)
+            .fixedFine(5000)
+            .points(0)
+            .build();
+        s.addExplanation("[L1] Speeding OPEN_ROAD 10-20 km/h over -> 5.000 RSD");
+        insert(s);
+        System.out.println("[FIRED] 7 Speeding OPEN 10-20");
+end
+
+rule "8 Speeding OPEN 21-40"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.OPEN_ROAD,
+                       speedOverLimitKmH >= 21, speedOverLimitKmH <= 40)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 44, 45 par. 1 pts. 1-3 (penal art. 332a)")
+            .severity(Severity.PETTY)
+            .fixedFine(10000)
+            .points(0)
+            .build();
+        s.addExplanation("[L1] Speeding OPEN_ROAD 21-40 km/h over -> 10.000 RSD");
+        insert(s);
+        System.out.println("[FIRED] 8 Speeding OPEN 21-40");
+end
+
+rule "9 Speeding OPEN 41-60"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.OPEN_ROAD,
+                       speedOverLimitKmH >= 41, speedOverLimitKmH <= 60)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 44, 45 par. 1 pts. 1-3 (penal art. 332)")
+            .severity(Severity.MODERATE)
+            .fine(10000, 20000)
+            .points(3)
+            .drivingBanDays(30)
+            .build();
+        s.addExplanation("[L1] Speeding OPEN_ROAD 41-60 km/h over -> 10-20k RSD + 3 points + 30 days ban");
+        insert(s);
+        System.out.println("[FIRED] 9 Speeding OPEN 41-60");
+end
+
+rule "10 Speeding OPEN 61-80"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.OPEN_ROAD,
+                       speedOverLimitKmH >= 61, speedOverLimitKmH <= 80)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 44, 45 par. 1 pts. 1-3 (penal art. 331)")
+            .severity(Severity.MAJOR)
+            .fine(20000, 40000)
+            .prison(0, 30)
+            .alternativePenalty(true)
+            .points(6)
+            .drivingBanDays(90)
+            .build();
+        s.addExplanation("[L1] Speeding OPEN_ROAD 61-80 km/h over -> 20-40k RSD OR prison <= 30 days + 6 points + 3 months ban");
+        insert(s);
+        System.out.println("[FIRED] 10 Speeding OPEN 61-80");
+end
+
+rule "11 Speeding OPEN 81-100"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.OPEN_ROAD,
+                       speedOverLimitKmH >= 81, speedOverLimitKmH <= 100)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 44, 45 par. 1 pts. 1-3 (penal art. 330)")
+            .severity(Severity.SEVERE)
+            .fine(100000, 120000)
+            .prison(15, 30)
+            .alternativePenalty(true)
+            .points(14)
+            .drivingBanDays(240)
+            .build();
+        s.addExplanation("[L1] Speeding OPEN_ROAD 81-100 km/h over -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban");
+        insert(s);
+        System.out.println("[FIRED] 11 Speeding OPEN 81-100");
+end
+
+rule "12 Speeding OPEN over 100 (reckless driving)"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.OPEN_ROAD,
+                       speedOverLimitKmH > 100)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 44, 45 par. 1 pts. 1-3 (penal art. 329 - reckless driving)")
+            .severity(Severity.VIOLENT)
+            .fine(120000, 140000)
+            .prison(30, 60)
+            .communityService(240, 360)
+            .alternativePenalty(true)
+            .points(15)
+            .drivingBanDays(270)
+            .build();
+        s.addExplanation("[L1] Speeding OPEN_ROAD > 100 km/h over -> 120-140k RSD + prison or community service + 15 points + 9 months ban (RECKLESS DRIVING)");
+        insert(s);
+        System.out.println("[FIRED] 12 Speeding OPEN > 100 (VIOLENT)");
+end
+
+// --- Rules 13-16: SPEEDING by special vehicle (BUS) ---
+
+rule "13 Speeding BUS 11-20"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       vehicle.category == VehicleCategory.BUS,
+                       speedOverLimitKmH >= 11, speedOverLimitKmH <= 20)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 45 par. 1 pt. 4 (penal art. 333)")
+            .severity(Severity.MINOR)
+            .fixedFine(5000)
+            .points(0)
+            .build();
+        s.addExplanation("[L1] Speeding BUS 11-20 km/h over (bus-specific limit) -> 5.000 RSD");
+        insert(s);
+        System.out.println("[FIRED] 13 Speeding BUS 11-20");
+end
+
+rule "14 Speeding BUS 21-50"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       vehicle.category == VehicleCategory.BUS,
+                       speedOverLimitKmH >= 21, speedOverLimitKmH <= 50)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 45 par. 1 pt. 4 (penal art. 332)")
+            .severity(Severity.MODERATE)
+            .fine(10000, 20000)
+            .points(4)
+            .drivingBanDays(30)
+            .build();
+        s.addExplanation("[L1] Speeding BUS 21-50 km/h over -> 10-20k RSD + 4 points + 30 days ban");
+        insert(s);
+        System.out.println("[FIRED] 14 Speeding BUS 21-50");
+end
+
+rule "15 Speeding BUS 51-70"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       vehicle.category == VehicleCategory.BUS,
+                       speedOverLimitKmH >= 51, speedOverLimitKmH <= 70)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 45 par. 1 pt. 4 (penal art. 331)")
+            .severity(Severity.MAJOR)
+            .fine(20000, 40000)
+            .prison(0, 30)
+            .alternativePenalty(true)
+            .points(7)
+            .drivingBanDays(120)
+            .build();
+        s.addExplanation("[L1] Speeding BUS 51-70 km/h over -> 20-40k RSD OR prison <= 30 days + 7 points + 4 months ban");
+        insert(s);
+        System.out.println("[FIRED] 15 Speeding BUS 51-70");
+end
+
+rule "16 Speeding BUS over 70"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       vehicle.category == VehicleCategory.BUS,
+                       speedOverLimitKmH > 70)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 45 par. 1 pt. 4 (penal art. 330)")
+            .severity(Severity.SEVERE)
+            .fine(100000, 120000)
+            .prison(15, 30)
+            .alternativePenalty(true)
+            .points(14)
+            .drivingBanDays(240)
+            .build();
+        s.addExplanation("[L1] Speeding BUS > 70 km/h over -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban");
+        insert(s);
+        System.out.println("[FIRED] 16 Speeding BUS > 70");
+end
+
+// --- Rule 17: SPEEDING in SCHOOL ZONE ---
+
+rule "17 Speeding SCHOOL_ZONE over 60"
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.SCHOOL_ZONE,
+                       speedOverLimitKmH > 60)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 45 (school zone, penal art. 330)")
+            .severity(Severity.SEVERE)
+            .fine(100000, 120000)
+            .prison(15, 30)
+            .alternativePenalty(true)
+            .points(14)
+            .drivingBanDays(240)
+            .build();
+        s.addExplanation("[L1] Speeding SCHOOL_ZONE > 60 km/h over -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban");
+        insert(s);
+        System.out.println("[FIRED] 17 Speeding SCHOOL_ZONE > 60");
+end
