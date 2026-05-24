@@ -1,0 +1,145 @@
+package sanctions;
+
+import com.ftn.sbnz.model.Violation;
+import com.ftn.sbnz.model.Sanction;
+import com.ftn.sbnz.model.ViolationType;
+import com.ftn.sbnz.model.Severity;
+
+// ============================================================
+// LAYER 1 - ALCOHOL & SUBSTANCE (rules 18-24)
+// ============================================================
+
+rule "18 Alcohol 0.21-0.50 (moderate)"
+    when
+        $v : Violation(type == ViolationType.ALCOHOL,
+                       bloodAlcoholLevel >= 0.21, bloodAlcoholLevel <= 0.50)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 187 par. 2, 4 (penal art. 332a)")
+            .severity(Severity.PETTY)
+            .fixedFine(10000)
+            .points(0)
+            .build();
+        s.addExplanation("[L1] Alcohol 0.21-0.50 per mille (moderate) -> 10.000 RSD");
+        insert(s);
+        System.out.println("[FIRED] 18 Alcohol 0.21-0.50");
+end
+
+rule "19 Alcohol 0.51-0.80 (medium)"
+    when
+        $v : Violation(type == ViolationType.ALCOHOL,
+                       bloodAlcoholLevel >= 0.51, bloodAlcoholLevel <= 0.80)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 187 par. 2, 4 (penal art. 332)")
+            .severity(Severity.MODERATE)
+            .fine(10000, 20000)
+            .points(6)
+            .drivingBanDays(90)
+            .build();
+        s.addExplanation("[L1] Alcohol 0.51-0.80 per mille (medium) -> 10-20k RSD + 6 points + 3 months ban");
+        insert(s);
+        System.out.println("[FIRED] 19 Alcohol 0.51-0.80");
+end
+
+rule "20 Alcohol 0.81-1.20 (high)"
+    when
+        $v : Violation(type == ViolationType.ALCOHOL,
+                       bloodAlcoholLevel >= 0.81, bloodAlcoholLevel <= 1.20)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 187 par. 2, 4 (penal art. 331)")
+            .severity(Severity.MAJOR)
+            .fine(20000, 40000)
+            .prison(0, 30)
+            .alternativePenalty(true)
+            .points(8)
+            .drivingBanDays(120)
+            .build();
+        s.addExplanation("[L1] Alcohol 0.81-1.20 per mille (high) -> 20-40k RSD OR prison <= 30 days + 8 points + 4 months ban");
+        insert(s);
+        System.out.println("[FIRED] 20 Alcohol 0.81-1.20");
+end
+
+rule "21 Alcohol 1.21-1.60 (heavy)"
+    when
+        $v : Violation(type == ViolationType.ALCOHOL,
+                       bloodAlcoholLevel >= 1.21, bloodAlcoholLevel <= 1.60)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 187 par. 2, 4 (penal art. 330)")
+            .severity(Severity.SEVERE)
+            .fine(100000, 120000)
+            .prison(15, 30)
+            .alternativePenalty(true)
+            .points(14)
+            .drivingBanDays(240)
+            .build();
+        s.addExplanation("[L1] Alcohol 1.21-1.60 per mille (heavy) -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban");
+        insert(s);
+        System.out.println("[FIRED] 21 Alcohol 1.21-1.60");
+end
+
+rule "22 Alcohol 1.61-2.00 (very heavy)"
+    when
+        $v : Violation(type == ViolationType.ALCOHOL,
+                       bloodAlcoholLevel >= 1.61, bloodAlcoholLevel <= 2.00)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 187 par. 2, 4 (penal art. 330)")
+            .severity(Severity.SEVERE)
+            .fine(100000, 120000)
+            .prison(15, 30)
+            .alternativePenalty(true)
+            .points(14)
+            .drivingBanDays(240)
+            .build();
+        s.addExplanation("[L1] Alcohol 1.61-2.00 per mille (very heavy) -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban");
+        insert(s);
+        System.out.println("[FIRED] 22 Alcohol 1.61-2.00");
+end
+
+rule "23 Alcohol over 2.00 (reckless driving)"
+    when
+        $v : Violation(type == ViolationType.ALCOHOL,
+                       bloodAlcoholLevel > 2.00)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 187 (penal art. 329 - reckless driving)")
+            .severity(Severity.VIOLENT)
+            .fine(120000, 140000)
+            .prison(30, 60)
+            .communityService(240, 360)
+            .alternativePenalty(true)
+            .points(15)
+            .drivingBanDays(270)
+            .build();
+        s.addExplanation("[L1] Alcohol > 2.00 per mille -> 120-140k RSD + prison or community service + 15 points + 9 months ban (RECKLESS DRIVING)");
+        insert(s);
+        System.out.println("[FIRED] 23 Alcohol > 2.00 (VIOLENT)");
+end
+
+rule "24 Refusing alcohol test"
+    when
+        $v : Violation(type == ViolationType.REFUSING_ALCO_TEST)
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("ZOBS art. 280 (penal art. 330)")
+            .severity(Severity.SEVERE)
+            .fine(100000, 120000)
+            .prison(15, 30)
+            .alternativePenalty(true)
+            .points(14)
+            .drivingBanDays(240)
+            .build();
+        s.addExplanation("[L1] Refusing alcohol test -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban");
+        insert(s);
+        System.out.println("[FIRED] 24 Refusing alcohol test");
+end
