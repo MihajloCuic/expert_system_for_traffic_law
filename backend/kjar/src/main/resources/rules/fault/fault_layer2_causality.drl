@@ -1,0 +1,63 @@
+package fault;
+
+import com.ftn.sbnz.model.Participant;
+import com.ftn.sbnz.model.Fault;
+import com.ftn.sbnz.model.Blame;
+import com.ftn.sbnz.model.BlameType;
+
+// ============================================================
+// LAYER 2 – Causality: aggregate fault weights → Blame
+// Salience -5 / -6 / -7 ensures this fires after Layer 1.
+// ============================================================
+
+// Intermediate declared type: one per participant with at least one fault
+declare FaultSummary
+    participant : Participant @key
+    totalWeight : int
+end
+
+rule "L2 Calculate fault weight per participant"
+    salience -5
+    when
+        $p : Participant()
+        not FaultSummary(participant == $p)
+        $total : Number(intValue() > 0) from accumulate(
+            Fault(participant == $p, $w : weight),
+            sum($w)
+        )
+    then
+        insert(new FaultSummary($p, $total.intValue()));
+        System.out.println("[FIRED] Layer2 FaultSummary " + $p.getId() + " weight=" + $total.intValue());
+end
+
+rule "L2 Blame NONE – no faults"
+    salience -7
+    when
+        $p : Participant()
+        not FaultSummary(participant == $p)
+        not Blame(participant == $p)
+    then
+        Blame blame = new Blame($p, 0, BlameType.NONE);
+        insert(blame);
+        System.out.println("[FIRED] Layer2 NONE blame for " + $p.getId());
+end
+
+rule "L2 Calculate blame percentage"
+    salience -7
+    when
+        $fs : FaultSummary($p : participant, $w : totalWeight)
+        $grandTotal : Number(intValue() > 0) from accumulate(
+            FaultSummary($tw : totalWeight),
+            sum($tw)
+        )
+        not Blame(participant == $p)
+    then
+        int pct = (int) Math.round(100.0 * $w / $grandTotal.intValue());
+        BlameType type;
+        if (pct == 100)      type = BlameType.EXCLUSIVE;
+        else if (pct >= 70)  type = BlameType.PREDOMINANT;
+        else                 type = BlameType.SHARED;
+        Blame blame = new Blame($p, pct, type);
+        insert(blame);
+        System.out.println("[FIRED] Layer2 blame " + $p.getId() + " pct=" + pct + " type=" + type);
+end

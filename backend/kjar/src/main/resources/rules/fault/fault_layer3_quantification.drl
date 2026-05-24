@@ -1,0 +1,27 @@
+package fault;
+
+import com.ftn.sbnz.model.Participant;
+import com.ftn.sbnz.model.Fault;
+import com.ftn.sbnz.model.Blame;
+import com.ftn.sbnz.model.BlameType;
+import java.util.List;
+
+// ============================================================
+// LAYER 3 – Finalization: attach reasoning to Blame objects
+// Salience -10 ensures this fires after Layer 2.
+// ============================================================
+
+rule "L3 Finalize blame with fault reasoning"
+    salience -10
+    when
+        $blame : Blame($p : participant, reasoning.size() == 0)
+        $faults : List(size > 0) from collect(Fault(participant == $p))
+    then
+        for (Object obj : $faults) {
+            Fault f = (Fault) obj;
+            $blame.addReasoning("[L1] " + f.getType() + " – " + f.getLawArticle());
+        }
+        update($blame);
+        System.out.println("[FIRED] Layer3 finalized blame for " + $p.getId()
+                           + " with " + $faults.size() + " fault(s)");
+end
