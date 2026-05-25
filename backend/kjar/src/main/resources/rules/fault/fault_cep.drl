@@ -1,0 +1,60 @@
+package fault;
+
+import com.ftn.sbnz.model.Participant;
+import com.ftn.sbnz.model.Fault;
+import com.ftn.sbnz.model.FaultType;
+import com.ftn.sbnz.model.Blame;
+import com.ftn.sbnz.model.BlameType;
+import com.ftn.sbnz.model.CausedFault;
+import com.ftn.sbnz.model.ParticipantAction;
+import com.ftn.sbnz.model.ParticipantActionType;
+
+// ============================================================
+// CEP – Complex Event Processing on "manevriStream" entry-point
+// Events inserted via session.getEntryPoint("manevriStream").
+// ============================================================
+
+declare ParticipantAction
+    @role(event)
+    @timestamp(timestampMs)
+end
+
+// Rule 1: Participant $p2 entered the intersection within 5 seconds
+// after $p1 already started a turning maneuver → right-of-way violation for $p2.
+rule "CEP Started maneuver before other entered intersection"
+    when
+        $e1 : ParticipantAction(type == ParticipantActionType.START_TURNING,
+                                $p1 : participant)
+              from entry-point "manevriStream"
+        $e2 : ParticipantAction(type == ParticipantActionType.ENTER_INTERSECTION,
+                                $p2 : participant, participant != $p1,
+                                this after[0s, 5s] $e1)
+              from entry-point "manevriStream"
+    then
+        Fault fault = new Fault($p2, FaultType.RIGHT_OF_WAY_VIOLATION, 3, "ZOBS art. 61");
+        fault.setCausedAccident(true);
+        insert(fault);
+        CausedFault cf = new CausedFault($p1, fault,
+                "Ušao u raskrsnicu nakon početka manevra učesnika " + $p1.getId());
+        insert(cf);
+        System.out.println("[FIRED] CEP maneuver-before-intersection "
+                           + $p2.getId() + " after " + $p1.getId());
+end
+
+// Rule 2: Participant did not brake within 2 seconds before the collision
+// → DELAYED_REACTION fault.
+rule "CEP Insufficient reaction time before collision"
+    when
+        $e2 : ParticipantAction(type == ParticipantActionType.IMPACT,
+                                $p : participant)
+              from entry-point "manevriStream"
+        not ParticipantAction(type == ParticipantActionType.BRAKE,
+                              participant == $p,
+                              this before[0s, 2s] $e2)
+              from entry-point "manevriStream"
+    then
+        Fault fault = new Fault($p, FaultType.DELAYED_REACTION, 2, "ZOBS art. 43");
+        fault.setCausedAccident(true);
+        insert(fault);
+        System.out.println("[FIRED] CEP delayed reaction for " + $p.getId());
+end

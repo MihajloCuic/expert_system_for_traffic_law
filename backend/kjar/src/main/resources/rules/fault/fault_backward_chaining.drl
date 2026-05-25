@@ -1,0 +1,33 @@
+package fault;
+
+import com.ftn.sbnz.model.Participant;
+import com.ftn.sbnz.model.Fault;
+import com.ftn.sbnz.model.Blame;
+import com.ftn.sbnz.model.BlameType;
+import com.ftn.sbnz.model.CausedFault;
+
+query "directlyAtFault"(String $participantId)
+    Fault(participant.id == $participantId, causedAccident == true)
+end
+
+query "responsibleForAccident"(String $aId, String $bId)
+    // Base case: B is directly at fault and A directly caused B's fault
+    (directlyAtFault($bId;) and CausedFault(cause.id == $aId, consequence.participant.id == $bId))
+    or
+    // Recursive step: A is responsible for $mid and $mid is responsible for B
+    (Participant($mid : id) and responsibleForAccident($aId, $mid;) and responsibleForAccident($mid, $bId;))
+end
+
+rule "Indirect blame through chain"
+    salience -8
+    when
+        $cf : CausedFault($causeParticipant : cause, $aId : cause.id)
+        exists Fault(participant.id != $aId, causedAccident == true)
+        not Blame(participant == $causeParticipant)
+    then
+        Blame blame = new Blame($causeParticipant, 0, BlameType.INDIRECT);
+        blame.addReasoning("[Backward Chaining] caused chain via " + $aId);
+        insert(blame);
+        System.out.println("[FIRED] BackwardChaining INDIRECT blame for "
+                           + $causeParticipant.getId() + " via " + $aId);
+end

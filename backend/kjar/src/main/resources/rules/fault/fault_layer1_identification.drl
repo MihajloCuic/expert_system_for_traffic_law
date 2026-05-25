@@ -1,0 +1,105 @@
+package fault;
+
+import com.ftn.sbnz.model.Participant;
+import com.ftn.sbnz.model.AccidentScene;
+import com.ftn.sbnz.model.Fault;
+import com.ftn.sbnz.model.FaultType;
+import com.ftn.sbnz.model.Visibility;
+import com.ftn.sbnz.model.RoadCondition;
+import com.ftn.sbnz.model.Maneuver;
+import com.ftn.sbnz.model.SignalizationType;
+
+// ============================================================
+// LAYER 1 – Fault identification from raw facts
+// All rules at default salience (0); fire before Layer 2/3.
+// ============================================================
+
+rule "L1 UNADJUSTED_SPEED poor visibility"
+    when
+        $scene : AccidentScene($limit : speedLimitKmH, visibility == Visibility.POOR)
+        $p : Participant(speedKmH > $limit * 0.8)
+    then
+        Fault fault = new Fault($p, FaultType.UNADJUSTED_SPEED, 3, "ZOBS art. 43");
+        insert(fault);
+        System.out.println("[FIRED] Layer1 UNADJUSTED_SPEED poor visibility – " + $p.getId());
+end
+
+rule "L1 UNADJUSTED_SPEED wet or icy road"
+    when
+        $scene : AccidentScene($limit : speedLimitKmH,
+                               roadCondition in (RoadCondition.WET, RoadCondition.ICY))
+        $p : Participant(speedKmH > $limit + 20)
+    then
+        Fault fault = new Fault($p, FaultType.UNADJUSTED_SPEED, 4, "ZOBS art. 43");
+        insert(fault);
+        System.out.println("[FIRED] Layer1 UNADJUSTED_SPEED wet/icy road – " + $p.getId());
+end
+
+rule "L1 RIGHT_OF_WAY_VIOLATION merging onto priority road"
+    when
+        $scene : AccidentScene(signalization in (SignalizationType.STOP_SIGN,
+                                                 SignalizationType.YIELD_SIGN))
+        $p : Participant(maneuver == Maneuver.MERGING_ONTO_PRIORITY_ROAD)
+    then
+        Fault fault = new Fault($p, FaultType.RIGHT_OF_WAY_VIOLATION, 5, "ZOBS art. 69");
+        insert(fault);
+        System.out.println("[FIRED] Layer1 RIGHT_OF_WAY_VIOLATION merging – " + $p.getId());
+end
+
+rule "L1 RIGHT_OF_WAY_VIOLATION turning left without priority"
+    when
+        $scene : AccidentScene(signalization == SignalizationType.NONE)
+        $p : Participant(maneuver == Maneuver.TURNING_LEFT)
+    then
+        Fault fault = new Fault($p, FaultType.RIGHT_OF_WAY_VIOLATION, 4, "ZOBS art. 61");
+        insert(fault);
+        System.out.println("[FIRED] Layer1 RIGHT_OF_WAY_VIOLATION turning left – " + $p.getId());
+end
+
+rule "L1 UNSAFE_DISTANCE"
+    when
+        $p : Participant($speed : speedKmH, distanceToVehicleAhead > 0,
+                         distanceToVehicleAhead < $speed * 0.3)
+    then
+        Fault fault = new Fault($p, FaultType.UNSAFE_DISTANCE, 2, "ZOBS art. 49");
+        insert(fault);
+        System.out.println("[FIRED] Layer1 UNSAFE_DISTANCE – " + $p.getId());
+end
+
+rule "L1 ALCOHOL_INFLUENCE"
+    when
+        $p : Participant(underAlcoholInfluence == true)
+    then
+        Fault fault = new Fault($p, FaultType.ALCOHOL_INFLUENCE, 6, "ZOBS art. 176");
+        insert(fault);
+        System.out.println("[FIRED] Layer1 ALCOHOL_INFLUENCE – " + $p.getId());
+end
+
+rule "L1 IMPROPER_OVERTAKING poor visibility"
+    when
+        $scene : AccidentScene(visibility == Visibility.POOR)
+        $p : Participant(maneuver == Maneuver.OVERTAKING)
+    then
+        Fault fault = new Fault($p, FaultType.IMPROPER_OVERTAKING, 4, "ZOBS art. 84");
+        insert(fault);
+        System.out.println("[FIRED] Layer1 IMPROPER_OVERTAKING – " + $p.getId());
+end
+
+rule "L1 RED_LIGHT_RUN"
+    when
+        $p : Participant(ignoredRedLight == true)
+    then
+        Fault fault = new Fault($p, FaultType.RED_LIGHT_RUN, 7, "ZOBS art. 62");
+        insert(fault);
+        System.out.println("[FIRED] Layer1 RED_LIGHT_RUN – " + $p.getId());
+end
+
+rule "L1 NO_LIGHTS poor visibility"
+    when
+        $scene : AccidentScene(visibility == Visibility.POOR)
+        $p : Participant(vehicle.hasLights == false)
+    then
+        Fault fault = new Fault($p, FaultType.NO_LIGHTS, 2, "ZOBS art. 100");
+        insert(fault);
+        System.out.println("[FIRED] Layer1 NO_LIGHTS – " + $p.getId());
+end

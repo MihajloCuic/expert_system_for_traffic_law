@@ -2,6 +2,7 @@ package com.ftn.sbnz.model;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 public class ParticipantAction implements Serializable {
 
@@ -27,4 +28,9 @@ public class ParticipantAction implements Serializable {
 
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
+    public long getTimestampMs() {
+        if (timestamp == null) return System.currentTimeMillis();
+        return timestamp.toInstant(ZoneOffset.UTC).toEpochMilli();
+    }
 }

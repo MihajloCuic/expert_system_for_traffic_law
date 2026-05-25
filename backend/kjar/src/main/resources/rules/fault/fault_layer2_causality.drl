@@ -1,0 +1,62 @@
+package fault;
+
+import com.ftn.sbnz.model.Participant;
+import com.ftn.sbnz.model.Fault;
+import com.ftn.sbnz.model.Blame;
+import com.ftn.sbnz.model.BlameType;
+
+rule "L2 Blame EXCLUSIVE – only one participant has faults"
+    salience -6
+    when
+        $p : Participant()
+        not Blame(participant == $p)
+        Number(intValue() > 0) from accumulate(
+            Fault(participant == $p, $w : weight), sum($w)
+        )
+        Number(intValue() == 0) from accumulate(
+            Participant($other : this, this != $p)
+            and Number(intValue() > 0) from accumulate(
+                Fault(participant == $other, $w2 : weight), sum($w2)
+            ),
+            count(1)
+        )
+    then
+        Blame blame = new Blame($p, 100, BlameType.EXCLUSIVE);
+        insert(blame);
+        System.out.println("[FIRED] Layer2 EXCLUSIVE blame for " + $p.getId());
+end
+
+rule "L2 Blame SHARED – multiple participants have faults"
+    salience -6
+    when
+        $p : Participant()
+        not Blame(participant == $p)
+        $weight : Number(intValue() > 0) from accumulate(
+            Fault(participant == $p, $w : weight), sum($w)
+        )
+        $grandTotal : Number(intValue() > 0) from accumulate(
+            Fault($w3 : weight), sum($w3)
+        )
+    then
+        int pct = (int) Math.round(100.0 * $weight.intValue() / $grandTotal.intValue());
+        BlameType type;
+        if (pct >= 70)  type = BlameType.PREDOMINANT;
+        else            type = BlameType.SHARED;
+        Blame blame = new Blame($p, pct, type);
+        insert(blame);
+        System.out.println("[FIRED] Layer2 blame " + $p.getId() + " pct=" + pct + " type=" + type);
+end
+
+rule "L2 Blame NONE – no faults"
+    salience -9
+    when
+        $p : Participant()
+        not Blame(participant == $p)
+        Number(intValue() == 0) from accumulate(
+            Fault(participant == $p, $w : weight), sum($w)
+        )
+    then
+        Blame blame = new Blame($p, 0, BlameType.NONE);
+        insert(blame);
+        System.out.println("[FIRED] Layer2 NONE blame for " + $p.getId());
+end

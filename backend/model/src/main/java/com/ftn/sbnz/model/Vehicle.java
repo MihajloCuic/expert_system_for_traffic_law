@@ -8,6 +8,7 @@ public class Vehicle implements Serializable {
 
     private String licensePlate;
     private VehicleCategory category;
+    private boolean hasLights = true;
 
     public Vehicle() {}
 
@@ -21,4 +22,7 @@ public class Vehicle implements Serializable {
 
     public VehicleCategory getCategory() { return category; }
     public void setCategory(VehicleCategory category) { this.category = category; }
+
+    public boolean isHasLights() { return hasLights; }
+    public void setHasLights(boolean hasLights) { this.hasLights = hasLights; }
 }
