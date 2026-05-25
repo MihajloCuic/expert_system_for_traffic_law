@@ -1,0 +1,44 @@
+package sanctions;
+
+import com.ftn.sbnz.model.Sanction;
+import com.ftn.sbnz.model.PointPenalty;
+
+import java.util.Date;
+
+// ============================================================
+// LAYER 3.5 - POINT EMISSION
+//
+// For every Sanction whose finalPoints > 0, emit a PointPenalty event into
+// the "pointsStream" entry-point with timestamp "now".
+//
+// Without this step, the Layer 4 CEP sliding window would only see HISTORICAL
+// penalty point events (those loaded from the H2 database in
+// DroolsSessionService.openSessionFor). The current case's points would be
+// invisible to the 24-month window and therefore to the revocation check.
+//
+// salience -15 places this BETWEEN Layer 3 accumulation (salience -10) and
+// Layer 4 CEP window (salience -20):
+//   1. Layer 3 creates SanctionSummary from current sanctions.
+//   2. Layer 3.5 emits PointPenalty events for those same sanctions.
+//   3. Layer 4 accumulates historical + just-emitted -> ActivePointsSnapshot.
+//   4. Layer 5 checks the threshold.
+//
+// no-loop true: this rule does not re-trigger on its own emissions, because
+// PointPenalty is not in its LHS.
+// ============================================================
+
+rule "Emit PointPenalty for current Sanction"
+    salience -15
+    no-loop true
+    when
+        $s : Sanction($v : violation, $points : finalPoints, finalPoints > 0)
+    then
+        PointPenalty pp = new PointPenalty(
+            $v.getDriver(),
+            $points,
+            new Date(),
+            "current-" + System.identityHashCode($s));
+        kcontext.getKieRuntime().getEntryPoint("pointsStream").insert(pp);
+        System.out.println("[FIRED] L3.5 Emitted " + $points + " points for "
+            + $v.getDriver().getFullName() + " into pointsStream");
+end

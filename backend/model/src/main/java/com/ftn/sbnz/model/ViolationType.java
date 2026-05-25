@@ -52,6 +52,8 @@ public enum ViolationType {
     // === License ===
     NO_LICENSE,
     WRONG_LICENSE_CATEGORY,
+    /** Driving while the driver's license is currently revoked / suspended (ZOBS art. 330 pt. 8). */
+    DRIVING_DURING_BAN,
 
     // === Accident-related ===
     FLEEING_SCENE,

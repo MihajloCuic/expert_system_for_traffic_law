@@ -33,5 +33,13 @@
             <artifactId>drools-compiler</artifactId>
             <version>${drools.version}</version>
         </dependency>
+
+        <!-- JPA API only (no implementation) so model classes can be persistable
+             without dragging Spring or Hibernate into the model module. -->
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>3.1.0</version>
+        </dependency>
     </dependencies>
 </project>
