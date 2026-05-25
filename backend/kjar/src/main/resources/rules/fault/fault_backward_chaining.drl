@@ -6,42 +6,19 @@ import com.ftn.sbnz.model.Blame;
 import com.ftn.sbnz.model.BlameType;
 import com.ftn.sbnz.model.CausedFault;
 
-// ============================================================
-// Backward Chaining – Recursive guilt chain (lančani sudar)
-// query "directlyAtFault"     : base case – participant caused accident
-// query "responsibleForChain" : transitive – A → ... → B via CausedFault links
-// Rule "Indirect blame"       : salience -8 (after Layer 2, before Layer 3)
-// ============================================================
-
-// Base query: participant directly caused the accident
 query "directlyAtFault"(String $participantId)
     Fault(participant.id == $participantId, causedAccident == true)
 end
 
-// Recursive query: A is responsible for B's fault through a chain of CausedFault links
-query "responsibleForAccidentChain"(String $aId, String $bId)
-    // Base: A caused a fault for B directly
-    CausedFault(cause.id == $aId, consequence.participant.id == $bId)
-    or
-    // Recursive: A caused a fault for an intermediate M, and M is responsible for B
-    (CausedFault(cause.id == $aId, $cf : consequence)
-     and "responsibleForAccidentChain"($cf.participant.id, $bId;))
-end
-
-// Rule: if a chain exists A → ... → B, assign INDIRECT blame to B
-// (only when B has no direct/shared blame yet)
 rule "Indirect blame through chain"
     salience -8
     when
-        $pA : Participant($aId : id)
-        $pB : Participant($bId : id, this != $pA)
-        "responsibleForAccidentChain"($aId, $bId;)
+        $cf : CausedFault($aId : cause.id, $pB : consequence.participant)
         not Blame(participant == $pB)
     then
         Blame blame = new Blame($pB, 0, BlameType.INDIRECT);
-        blame.addReasoning("[Backward Chaining] " + $aId
-                           + " caused chain leading to " + $bId);
+        blame.addReasoning("[Backward Chaining] caused chain via " + $aId);
         insert(blame);
         System.out.println("[FIRED] BackwardChaining INDIRECT blame for "
-                           + $bId + " via " + $aId);
+                           + $pB.getId() + " via " + $aId);
 end
