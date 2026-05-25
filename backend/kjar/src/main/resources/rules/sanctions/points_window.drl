@@ -1,0 +1,45 @@
+package sanctions;
+
+import com.ftn.sbnz.model.Driver;
+import com.ftn.sbnz.model.PointPenalty;
+import com.ftn.sbnz.model.ActivePointsSnapshot;
+
+import java.time.LocalDate;
+
+// ============================================================
+// LAYER 4 - ACTIVE PENALTY POINTS (CEP)
+//
+// Implements the 24-month rolling window prescribed by the
+// "Pravilnik o kaznenim poenima":
+//   - every penalty point award is a PointPenalty event with a timestamp,
+//   - points stay active for 24 months (730 days) and then expire automatically
+//     (the @Expires("730d") annotation on the event class does the cleanup).
+//
+// This rule sums all CURRENTLY ACTIVE points per driver into an
+// ActivePointsSnapshot, which the revocation layer consumes.
+//
+// over window:time(730d) - additional safety: even if @Expires were not set,
+//   only events with timestamps within the last 730 days are accumulated.
+//
+// not ActivePointsSnapshot(driver == $d) - fire once per driver per session.
+// ============================================================
+
+rule "Compute active penalty points (24mo rolling window)"
+    salience -20
+    when
+        $d : Driver()
+        not ActivePointsSnapshot(driver == $d)
+
+        $totalActive : Number() from accumulate(
+            $pp : PointPenalty(driver == $d)
+                  over window:time(730d)
+                  from entry-point "pointsStream",
+            sum($pp.getPoints()))
+    then
+        ActivePointsSnapshot snap = new ActivePointsSnapshot(
+            $d, $totalActive.intValue(), LocalDate.now());
+        insert(snap);
+        System.out.println("[FIRED] L4 Active points snapshot for "
+            + $d.getFullName() + " = " + $totalActive.intValue()
+            + " points (within last 24 months)");
+end

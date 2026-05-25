@@ -18,7 +18,7 @@ rule "48 Driving without license"
     then
         Sanction s = Sanction.builder()
             .violation($v)
-            .lawArticle("ZOBS art. 330")
+            .lawArticle("ZOBS art. 330 par. 1 pt. 1 (never licensed or license revoked)")
             .severity(Severity.SEVERE)
             .fine(100000, 120000)
             .prison(15, 30)

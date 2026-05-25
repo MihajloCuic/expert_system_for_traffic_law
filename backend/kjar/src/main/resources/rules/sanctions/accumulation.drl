@@ -81,11 +81,15 @@ rule "Aggregate sanctions per driver (sticaj prekrsaja)"
         int maxIndFineMin = $maxIndFineMin.intValue();
         int maxIndFineMax = $maxIndFineMax.intValue();
 
+        int totalFineMin = sumFineMin;
+        if (maxIndFineMin > 0 && sumFineMin >= 2 * maxIndFineMin) {
+            totalFineMin = 2 * maxIndFineMin - 1;
+        }
         int totalFineMax = sumFineMax;
         if (maxIndFineMax > 0 && sumFineMax >= 2 * maxIndFineMax) {
             totalFineMax = 2 * maxIndFineMax - 1;
         }
-        summary.setTotalFineMin(sumFineMin);
+        summary.setTotalFineMin(totalFineMin);
         summary.setTotalFineMax(totalFineMax);
 
         // ----- POINTS: simple sum -----
@@ -117,7 +121,7 @@ rule "Aggregate sanctions per driver (sticaj prekrsaja)"
             + " applying 'sticaj prekrsaja' rules:");
         summary.addExplanation("[L3]   Fines: sum " + sumFineMin + "-" + sumFineMax + " RSD"
             + (totalFineMax != sumFineMax
-                ? " -> capped to " + sumFineMin + "-" + totalFineMax + " RSD"
+                ? " -> capped to " + totalFineMin + "-" + totalFineMax + " RSD"
                 : " (no cap needed)"));
         summary.addExplanation("[L3]   Points: " + summary.getTotalPoints());
         if (maxBan > 0) {

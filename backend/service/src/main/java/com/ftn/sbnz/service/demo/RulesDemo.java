@@ -1,11 +1,19 @@
 package com.ftn.sbnz.service.demo;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
+
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.rule.EntryPoint;
 
+import com.ftn.sbnz.model.ActivePointsSnapshot;
 import com.ftn.sbnz.model.Driver;
+import com.ftn.sbnz.model.LicenseRevocation;
 import com.ftn.sbnz.model.Location;
+import com.ftn.sbnz.model.PointPenalty;
 import com.ftn.sbnz.model.Sanction;
 import com.ftn.sbnz.model.SanctionSummary;
 import com.ftn.sbnz.model.Vehicle;
@@ -42,6 +50,10 @@ public class RulesDemo {
         scenarioMultipleViolationsWithAccident(kc);
         scenarioContinuingOffense(kc);
         scenarioStickajCap(kc);
+        scenarioActivePointsBelowThreshold(kc);
+        scenarioStandardLicenseRevocation(kc);
+        scenarioProbationaryLicenseRevocation(kc);
+        scenarioOldPointsExpire(kc);
 
         System.out.println("\n=====================================================");
     }
@@ -215,6 +227,139 @@ public class RulesDemo {
 
         printOutcome(session);
         session.dispose();
+    }
+
+    // -----------------------------------------------------------------
+    // Scenario G: driver with 11 active points (below 18 threshold) - no revocation
+    // -----------------------------------------------------------------
+    private static void scenarioActivePointsBelowThreshold(KieContainer kc) {
+        System.out.println("\n--- SCENARIO G: Standard driver, 11 active points (below 18 -> no revocation) ---");
+        KieSession session = kc.newKieSession("sanctionsKsession");
+
+        Driver d = new Driver("D101", "Marko Markovic", 8, 0,
+            LocalDate.of(1995, 5, 10), LocalDate.of(2013, 6, 1)); // standard license
+
+        EntryPoint pointsStream = session.getEntryPoint("pointsStream");
+        // History within the 24-month window
+        pointsStream.insert(new PointPenalty(d, 4, daysAgo(400), "VIO-001"));
+        pointsStream.insert(new PointPenalty(d, 7, daysAgo(180), "VIO-002"));
+
+        session.insert(d);
+        session.fireAllRules();
+
+        printCepOutcome(session);
+        session.dispose();
+    }
+
+    // -----------------------------------------------------------------
+    // Scenario H: standard license driver crosses 18 points threshold -> REVOCATION
+    // -----------------------------------------------------------------
+    private static void scenarioStandardLicenseRevocation(KieContainer kc) {
+        System.out.println("\n--- SCENARIO H: Standard driver crosses 18-point threshold -> REVOCATION ---");
+        KieSession session = kc.newKieSession("sanctionsKsession");
+
+        Driver d = new Driver("D102", "Petar Petrovic", 15, 0,
+            LocalDate.of(1985, 3, 20), LocalDate.of(2005, 8, 15));
+
+        EntryPoint pointsStream = session.getEntryPoint("pointsStream");
+        pointsStream.insert(new PointPenalty(d, 6,  daysAgo(600), "VIO-101"));
+        pointsStream.insert(new PointPenalty(d, 7,  daysAgo(300), "VIO-102"));
+        pointsStream.insert(new PointPenalty(d, 6,  daysAgo(60),  "VIO-103"));
+        // Total active: 6+7+6 = 19 >= 18 -> revocation
+
+        session.insert(d);
+        session.fireAllRules();
+
+        printCepOutcome(session);
+        session.dispose();
+    }
+
+    // -----------------------------------------------------------------
+    // Scenario I: probationary license driver crosses 9 points threshold -> REVOCATION
+    // -----------------------------------------------------------------
+    private static void scenarioProbationaryLicenseRevocation(KieContainer kc) {
+        System.out.println("\n--- SCENARIO I: Probationary driver crosses 9-point threshold -> REVOCATION ---");
+        KieSession session = kc.newKieSession("sanctionsKsession");
+
+        // Young driver, got license 6 months ago -> still in probation
+        Driver d = new Driver("D103", "Ana Anic", 1, 0,
+            LocalDate.now().minusYears(20),
+            LocalDate.now().minusMonths(6));
+
+        EntryPoint pointsStream = session.getEntryPoint("pointsStream");
+        pointsStream.insert(new PointPenalty(d, 4, daysAgo(120), "VIO-201"));
+        pointsStream.insert(new PointPenalty(d, 6, daysAgo(30),  "VIO-202"));
+        // Total active: 4+6 = 10 >= 9 -> probationary revocation
+
+        session.insert(d);
+        session.fireAllRules();
+
+        printCepOutcome(session);
+        session.dispose();
+    }
+
+    // -----------------------------------------------------------------
+    // Scenario J: old points (older than 24 months) are auto-expired -> no revocation
+    //   even though they would total >= 18 if NOT expired.
+    // Demonstrates the CEP @Expires("730d") behaviour.
+    // -----------------------------------------------------------------
+    private static void scenarioOldPointsExpire(KieContainer kc) {
+        System.out.println("\n--- SCENARIO J: Old points (>24mo) auto-expire -> no revocation ---");
+        KieSession session = kc.newKieSession("sanctionsKsession");
+
+        Driver d = new Driver("D104", "Nikola Nikolic", 10, 0,
+            LocalDate.of(1980, 1, 1), LocalDate.of(2000, 1, 1));
+
+        EntryPoint pointsStream = session.getEntryPoint("pointsStream");
+        // Old (expired) penalties - 800+ days old, outside the 24mo window
+        pointsStream.insert(new PointPenalty(d, 10, daysAgo(800), "VIO-OLD-1"));
+        pointsStream.insert(new PointPenalty(d, 10, daysAgo(900), "VIO-OLD-2"));
+        // Current (active) penalty
+        pointsStream.insert(new PointPenalty(d, 4,  daysAgo(60),  "VIO-CURRENT"));
+        // Active total: only 4 (the two 10-pt entries are outside the 730d window)
+
+        session.insert(d);
+        session.fireAllRules();
+
+        printCepOutcome(session);
+        session.dispose();
+    }
+
+    /** Helper: returns a java.util.Date for "today minus N days". */
+    private static Date daysAgo(int days) {
+        return Date.from(LocalDate.now().minusDays(days)
+            .atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
+    /** Prints active-points snapshot and any license revocation. */
+    private static void printCepOutcome(KieSession s) {
+        for (Object o : s.getObjects()) {
+            if (o instanceof ActivePointsSnapshot) {
+                ActivePointsSnapshot snap = (ActivePointsSnapshot) o;
+                System.out.println("\n  >>> CEP ACTIVE POINTS <<<");
+                System.out.println("    Driver:          " + snap.getDriver().getFullName());
+                System.out.println("    Probationary:    " + snap.getDriver().isProbationary(LocalDate.now()));
+                System.out.println("    Active points:   " + snap.getActivePoints()
+                                    + " (within last 24 months)");
+            }
+        }
+        boolean hadRevocation = false;
+        for (Object o : s.getObjects()) {
+            if (o instanceof LicenseRevocation) {
+                LicenseRevocation rev = (LicenseRevocation) o;
+                hadRevocation = true;
+                System.out.println("\n  >>> LICENSE REVOCATION <<<");
+                System.out.println("    Driver:           " + rev.getDriver().getFullName());
+                System.out.println("    License type:     "
+                                    + (rev.isProbationary() ? "probationary (9-point threshold)"
+                                                            : "standard (18-point threshold)"));
+                System.out.println("    Points at revoke: " + rev.getActivePointsAtRevocation());
+                System.out.println("    Reason:           " + rev.getReason());
+            }
+        }
+        if (!hadRevocation) {
+            System.out.println("    -> No license revocation (under threshold).");
+        }
     }
 
     // -----------------------------------------------------------------
