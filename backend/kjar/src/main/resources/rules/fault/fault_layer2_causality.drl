@@ -48,7 +48,7 @@ rule "L2 Blame SHARED – multiple participants have faults"
 end
 
 rule "L2 Blame NONE – no faults"
-    salience -7
+    salience -9
     when
         $p : Participant()
         not Blame(participant == $p)

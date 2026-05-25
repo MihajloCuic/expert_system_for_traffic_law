@@ -48,7 +48,7 @@ end
 
 rule "L1 RIGHT_OF_WAY_VIOLATION turning left without priority"
     when
-        $scene : AccidentScene(signalization != SignalizationType.PRIORITY_ROAD)
+        $scene : AccidentScene(signalization == SignalizationType.NONE)
         $p : Participant(maneuver == Maneuver.TURNING_LEFT)
     then
         Fault fault = new Fault($p, FaultType.RIGHT_OF_WAY_VIOLATION, 4, "ZOBS art. 61");
@@ -87,8 +87,7 @@ end
 
 rule "L1 RED_LIGHT_RUN"
     when
-        $scene : AccidentScene(signalization == SignalizationType.TRAFFIC_LIGHT)
-        $p : Participant(maneuver != Maneuver.STOPPED)
+        $p : Participant(ignoredRedLight == true)
     then
         Fault fault = new Fault($p, FaultType.RED_LIGHT_RUN, 7, "ZOBS art. 62");
         insert(fault);

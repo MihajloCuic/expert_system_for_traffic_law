@@ -13,6 +13,7 @@ public class Participant implements Serializable {
     private int speedKmH;
     private double distanceToVehicleAhead;
     private boolean underAlcoholInfluence;
+    private boolean ignoredRedLight;
 
     public Participant() {}
 
@@ -46,5 +47,10 @@ public class Participant implements Serializable {
     public boolean isUnderAlcoholInfluence() { return underAlcoholInfluence; }
     public void setUnderAlcoholInfluence(boolean underAlcoholInfluence) {
         this.underAlcoholInfluence = underAlcoholInfluence;
+    }
+
+    public boolean isIgnoredRedLight() { return ignoredRedLight; }
+    public void setIgnoredRedLight(boolean ignoredRedLight) {
+        this.ignoredRedLight = ignoredRedLight;
     }
 }

@@ -1,0 +1,334 @@
+{
+  "info": {
+    "_postman_id": "c7e2a1f0-3b84-4d91-b562-1a9f3c08e755",
+    "name": "Module 2 – Fault Determination",
+    "description": "Integration tests for POST /api/module2/determine-fault",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "S1 – Exclusive blame: one participant runs red light",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('blames array is not empty', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.blames).to.be.an('array').and.not.empty;",
+              "});",
+              "",
+              "pm.test('P1 has EXCLUSIVE blame', function () {",
+              "    var json = pm.response.json();",
+              "    var p1 = json.blames.find(function(b) { return b.participantId === 'P1'; });",
+              "    pm.expect(p1).to.exist;",
+              "    pm.expect(p1.type).to.eql('EXCLUSIVE');",
+              "    pm.expect(p1.percentage).to.eql(100);",
+              "});",
+              "",
+              "pm.test('P2 has NONE blame', function () {",
+              "    var json = pm.response.json();",
+              "    var p2 = json.blames.find(function(b) { return b.participantId === 'P2'; });",
+              "    pm.expect(p2).to.exist;",
+              "    pm.expect(p2.type).to.eql('NONE');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "options": { "raw": { "language": "json" } },
+          "raw": "{\n  \"accident\": {\n    \"id\": \"ACC-001\",\n    \"occurredAt\": \"2024-01-01T10:00:00\",\n    \"scene\": {\n      \"signalization\": \"TRAFFIC_LIGHT\",\n      \"visibility\": \"GOOD\",\n      \"roadCondition\": \"DRY\",\n      \"speedLimitKmH\": 50,\n      \"intersection\": true\n    },\n    \"participants\": [\n      {\n        \"id\": \"P1\",\n        \"driver\": { \"id\": \"DRV-1\", \"fullName\": \"Driver 1\", \"yearsOfExperience\": 5, \"penaltyPoints\": 0 },\n        \"vehicle\": { \"licensePlate\": \"BP-001-AA\", \"category\": \"CAR\", \"hasLights\": true },\n        \"maneuver\": \"STRAIGHT\",\n        \"speedKmH\": 50,\n        \"distanceToVehicleAhead\": 0,\n        \"underAlcoholInfluence\": false,\n        \"ignoredRedLight\": true\n      },\n      {\n        \"id\": \"P2\",\n        \"driver\": { \"id\": \"DRV-2\", \"fullName\": \"Driver 2\", \"yearsOfExperience\": 5, \"penaltyPoints\": 0 },\n        \"vehicle\": { \"licensePlate\": \"BP-002-BB\", \"category\": \"CAR\", \"hasLights\": true },\n        \"maneuver\": \"STOPPED\",\n        \"speedKmH\": 0,\n        \"distanceToVehicleAhead\": 0,\n        \"underAlcoholInfluence\": false,\n        \"ignoredRedLight\": false\n      }\n    ],\n    \"injuredPersons\": false,\n    \"fatalOutcome\": false,\n    \"materialDamageRsd\": 0\n  },\n  \"declaredFaults\": [],\n  \"actions\": []\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/module2/determine-fault",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "module2", "determine-fault"]
+        }
+      }
+    },
+    {
+      "name": "S2 – Shared blame: right-of-way violation + alcohol",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('blames array is not empty', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.blames).to.be.an('array').and.not.empty;",
+              "});",
+              "",
+              "pm.test('Both participants have blame', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.blames.length).to.be.at.least(2);",
+              "});",
+              "",
+              "pm.test('At least one SHARED blame type present', function () {",
+              "    var json = pm.response.json();",
+              "    var types = json.blames.map(function(b) { return b.type; });",
+              "    pm.expect(types).to.include('SHARED');",
+              "});",
+              "",
+              "pm.test('P1 and P2 both have non-zero percentage blame', function () {",
+              "    var json = pm.response.json();",
+              "    json.blames.forEach(function(b) {",
+              "        pm.expect(b.percentage).to.be.above(0);",
+              "    });",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "options": { "raw": { "language": "json" } },
+          "raw": "{\n  \"accident\": {\n    \"id\": \"ACC-002\",\n    \"occurredAt\": \"2024-01-01T11:00:00\",\n    \"scene\": {\n      \"signalization\": \"STOP_SIGN\",\n      \"visibility\": \"GOOD\",\n      \"roadCondition\": \"DRY\",\n      \"speedLimitKmH\": 50,\n      \"intersection\": true\n    },\n    \"participants\": [\n      {\n        \"id\": \"P1\",\n        \"driver\": { \"id\": \"DRV-1\", \"fullName\": \"Driver 1\", \"yearsOfExperience\": 5, \"penaltyPoints\": 0 },\n        \"vehicle\": { \"licensePlate\": \"BP-001-AA\", \"category\": \"CAR\", \"hasLights\": true },\n        \"maneuver\": \"MERGING_ONTO_PRIORITY_ROAD\",\n        \"speedKmH\": 40,\n        \"distanceToVehicleAhead\": 0,\n        \"underAlcoholInfluence\": false,\n        \"ignoredRedLight\": false\n      },\n      {\n        \"id\": \"P2\",\n        \"driver\": { \"id\": \"DRV-2\", \"fullName\": \"Driver 2\", \"yearsOfExperience\": 5, \"penaltyPoints\": 0 },\n        \"vehicle\": { \"licensePlate\": \"BP-002-BB\", \"category\": \"CAR\", \"hasLights\": true },\n        \"maneuver\": \"STRAIGHT\",\n        \"speedKmH\": 55,\n        \"distanceToVehicleAhead\": 0,\n        \"underAlcoholInfluence\": true,\n        \"ignoredRedLight\": false\n      }\n    ],\n    \"injuredPersons\": false,\n    \"fatalOutcome\": false,\n    \"materialDamageRsd\": 0\n  },\n  \"declaredFaults\": [],\n  \"actions\": []\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/module2/determine-fault",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "module2", "determine-fault"]
+        }
+      }
+    },
+    {
+      "name": "S3 – CEP: delayed reaction (no brake before impact)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('blames array is not empty', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.blames).to.be.an('array').and.not.empty;",
+              "});",
+              "",
+              "pm.test('P1 has EXCLUSIVE blame (sole participant with fault)', function () {",
+              "    var json = pm.response.json();",
+              "    var types = json.blames.map(function(b) { return b.type; });",
+              "    pm.expect(types).to.include('EXCLUSIVE');",
+              "});",
+              "",
+              "pm.test('P1 blame has DELAYED_REACTION reasoning', function () {",
+              "    var json = pm.response.json();",
+              "    var p1 = json.blames.find(function(b) { return b.participantId === 'P1'; });",
+              "    pm.expect(p1).to.exist;",
+              "    var reasoningText = p1.reasoning.join(' ');",
+              "    pm.expect(reasoningText).to.include('DELAYED_REACTION');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "options": { "raw": { "language": "json" } },
+          "raw": "{\n  \"accident\": {\n    \"id\": \"ACC-003\",\n    \"occurredAt\": \"2024-01-01T10:00:00\",\n    \"scene\": {\n      \"signalization\": \"NONE\",\n      \"visibility\": \"GOOD\",\n      \"roadCondition\": \"DRY\",\n      \"speedLimitKmH\": 50,\n      \"intersection\": true\n    },\n    \"participants\": [\n      {\n        \"id\": \"P1\",\n        \"driver\": { \"id\": \"DRV-1\", \"fullName\": \"Driver 1\", \"yearsOfExperience\": 5, \"penaltyPoints\": 0 },\n        \"vehicle\": { \"licensePlate\": \"BP-001-AA\", \"category\": \"CAR\", \"hasLights\": true },\n        \"maneuver\": \"STRAIGHT\",\n        \"speedKmH\": 60,\n        \"distanceToVehicleAhead\": 0,\n        \"underAlcoholInfluence\": false,\n        \"ignoredRedLight\": false\n      }\n    ],\n    \"injuredPersons\": false,\n    \"fatalOutcome\": false,\n    \"materialDamageRsd\": 0\n  },\n  \"declaredFaults\": [],\n  \"actions\": [\n    {\n      \"participant\": { \"id\": \"P1\" },\n      \"type\": \"ENTER_INTERSECTION\",\n      \"timestamp\": \"2024-01-01T10:00:00\"\n    },\n    {\n      \"participant\": { \"id\": \"P1\" },\n      \"type\": \"IMPACT\",\n      \"timestamp\": \"2024-01-01T10:00:03\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/module2/determine-fault",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "module2", "determine-fault"]
+        }
+      }
+    },
+    {
+      "name": "S4 – CEP: maneuver before intersection triggers right-of-way for P2",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('blames array is not empty', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.blames).to.be.an('array').and.not.empty;",
+              "});",
+              "",
+              "pm.test('P2 has EXCLUSIVE blame (CEP RIGHT_OF_WAY fault, P1 has none)', function () {",
+              "    var json = pm.response.json();",
+              "    var p2 = json.blames.find(function(b) { return b.participantId === 'P2'; });",
+              "    pm.expect(p2).to.exist;",
+              "    pm.expect(p2.type).to.eql('EXCLUSIVE');",
+              "});",
+              "",
+              "pm.test('P1 has no direct blame (NONE or INDIRECT)', function () {",
+              "    var json = pm.response.json();",
+              "    var p1 = json.blames.find(function(b) { return b.participantId === 'P1'; });",
+              "    pm.expect(p1).to.exist;",
+              "    pm.expect(p1.type).to.be.oneOf(['NONE', 'INDIRECT']);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "options": { "raw": { "language": "json" } },
+          "raw": "{\n  \"accident\": {\n    \"id\": \"ACC-004\",\n    \"occurredAt\": \"2024-01-01T10:00:00\",\n    \"scene\": {\n      \"signalization\": \"PRIORITY_ROAD\",\n      \"visibility\": \"GOOD\",\n      \"roadCondition\": \"DRY\",\n      \"speedLimitKmH\": 50,\n      \"intersection\": true\n    },\n    \"participants\": [\n      {\n        \"id\": \"P1\",\n        \"driver\": { \"id\": \"DRV-1\", \"fullName\": \"Driver 1\", \"yearsOfExperience\": 5, \"penaltyPoints\": 0 },\n        \"vehicle\": { \"licensePlate\": \"BP-001-AA\", \"category\": \"CAR\", \"hasLights\": true },\n        \"maneuver\": \"TURNING_LEFT\",\n        \"speedKmH\": 30,\n        \"distanceToVehicleAhead\": 0,\n        \"underAlcoholInfluence\": false,\n        \"ignoredRedLight\": false\n      },\n      {\n        \"id\": \"P2\",\n        \"driver\": { \"id\": \"DRV-2\", \"fullName\": \"Driver 2\", \"yearsOfExperience\": 5, \"penaltyPoints\": 0 },\n        \"vehicle\": { \"licensePlate\": \"BP-002-BB\", \"category\": \"CAR\", \"hasLights\": true },\n        \"maneuver\": \"STRAIGHT\",\n        \"speedKmH\": 50,\n        \"distanceToVehicleAhead\": 0,\n        \"underAlcoholInfluence\": false,\n        \"ignoredRedLight\": false\n      }\n    ],\n    \"injuredPersons\": false,\n    \"fatalOutcome\": false,\n    \"materialDamageRsd\": 0\n  },\n  \"declaredFaults\": [],\n  \"actions\": [\n    {\n      \"participant\": { \"id\": \"P1\" },\n      \"type\": \"START_TURNING\",\n      \"timestamp\": \"2024-01-01T10:00:00\"\n    },\n    {\n      \"participant\": { \"id\": \"P2\" },\n      \"type\": \"ENTER_INTERSECTION\",\n      \"timestamp\": \"2024-01-01T10:00:02\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/module2/determine-fault",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "module2", "determine-fault"]
+        }
+      }
+    },
+    {
+      "name": "S5 – Backward chaining: indirect blame via CausedFault chain (2 links)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Chain: P1 -START_TURNING-> P2 enters (P2 gets RIGHT_OF_WAY fault, CausedFault P1->P2)",
+              "//        P2 -START_TURNING-> P3 enters (P3 gets RIGHT_OF_WAY fault, CausedFault P2->P3)",
+              "// responsibleForAccident(P1, P3) resolves via recursive query through P2.",
+              "// The BC rule (salience -8) fires INDIRECT blame for the CAUSER (P1)",
+              "// who has no direct faults — fires after L2 SHARED (-6) assigns blame to victims.",
+              "",
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('blames array is not empty', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.blames).to.be.an('array').and.not.empty;",
+              "});",
+              "",
+              "pm.test('All three participants have a blame entry', function () {",
+              "    var json = pm.response.json();",
+              "    var ids = json.blames.map(function(b) { return b.participantId; });",
+              "    pm.expect(ids).to.include('P1');",
+              "    pm.expect(ids).to.include('P2');",
+              "    pm.expect(ids).to.include('P3');",
+              "});",
+              "",
+              "pm.test('At least one INDIRECT blame type present (recursive backward chaining)', function () {",
+              "    var json = pm.response.json();",
+              "    var types = json.blames.map(function(b) { return b.type; });",
+              "    pm.expect(types).to.include('INDIRECT');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "options": { "raw": { "language": "json" } },
+          "raw": "{\n  \"accident\": {\n    \"id\": \"ACC-005\",\n    \"occurredAt\": \"2024-01-01T10:00:00\",\n    \"scene\": {\n      \"signalization\": \"NONE\",\n      \"visibility\": \"GOOD\",\n      \"roadCondition\": \"DRY\",\n      \"speedLimitKmH\": 50,\n      \"intersection\": true\n    },\n    \"participants\": [\n      {\n        \"id\": \"P1\",\n        \"driver\": { \"id\": \"DRV-1\", \"fullName\": \"Driver 1\", \"yearsOfExperience\": 5, \"penaltyPoints\": 0 },\n        \"vehicle\": { \"licensePlate\": \"BP-001-AA\", \"category\": \"CAR\", \"hasLights\": true },\n        \"maneuver\": \"STRAIGHT\",\n        \"speedKmH\": 50,\n        \"distanceToVehicleAhead\": 0,\n        \"underAlcoholInfluence\": false,\n        \"ignoredRedLight\": false\n      },\n      {\n        \"id\": \"P2\",\n        \"driver\": { \"id\": \"DRV-2\", \"fullName\": \"Driver 2\", \"yearsOfExperience\": 5, \"penaltyPoints\": 0 },\n        \"vehicle\": { \"licensePlate\": \"BP-002-BB\", \"category\": \"CAR\", \"hasLights\": true },\n        \"maneuver\": \"STRAIGHT\",\n        \"speedKmH\": 50,\n        \"distanceToVehicleAhead\": 0,\n        \"underAlcoholInfluence\": false,\n        \"ignoredRedLight\": false\n      },\n      {\n        \"id\": \"P3\",\n        \"driver\": { \"id\": \"DRV-3\", \"fullName\": \"Driver 3\", \"yearsOfExperience\": 5, \"penaltyPoints\": 0 },\n        \"vehicle\": { \"licensePlate\": \"BP-003-CC\", \"category\": \"CAR\", \"hasLights\": true },\n        \"maneuver\": \"STRAIGHT\",\n        \"speedKmH\": 50,\n        \"distanceToVehicleAhead\": 0,\n        \"underAlcoholInfluence\": false,\n        \"ignoredRedLight\": false\n      }\n    ],\n    \"injuredPersons\": false,\n    \"fatalOutcome\": false,\n    \"materialDamageRsd\": 0\n  },\n  \"declaredFaults\": [],\n  \"actions\": [\n    {\n      \"participant\": { \"id\": \"P1\" },\n      \"type\": \"START_TURNING\",\n      \"timestamp\": \"2024-01-01T10:00:00\"\n    },\n    {\n      \"participant\": { \"id\": \"P2\" },\n      \"type\": \"ENTER_INTERSECTION\",\n      \"timestamp\": \"2024-01-01T10:00:02\"\n    },\n    {\n      \"participant\": { \"id\": \"P2\" },\n      \"type\": \"START_TURNING\",\n      \"timestamp\": \"2024-01-01T10:00:02\"\n    },\n    {\n      \"participant\": { \"id\": \"P3\" },\n      \"type\": \"ENTER_INTERSECTION\",\n      \"timestamp\": \"2024-01-01T10:00:06\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/module2/determine-fault",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "module2", "determine-fault"]
+        }
+      }
+    },
+    {
+      "name": "S6 – No blame: all participants driving correctly",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('blames array is not empty (L2 NONE blame inserted for each participant)', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.blames).to.be.an('array').and.not.empty;",
+              "});",
+              "",
+              "pm.test('All blames have type NONE', function () {",
+              "    var json = pm.response.json();",
+              "    json.blames.forEach(function(b) {",
+              "        pm.expect(b.type).to.eql('NONE');",
+              "    });",
+              "});",
+              "",
+              "pm.test('All blame percentages are 0', function () {",
+              "    var json = pm.response.json();",
+              "    json.blames.forEach(function(b) {",
+              "        pm.expect(b.percentage).to.eql(0);",
+              "    });",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "options": { "raw": { "language": "json" } },
+          "raw": "{\n  \"accident\": {\n    \"id\": \"ACC-006\",\n    \"occurredAt\": \"2024-01-01T12:00:00\",\n    \"scene\": {\n      \"signalization\": \"NONE\",\n      \"visibility\": \"GOOD\",\n      \"roadCondition\": \"DRY\",\n      \"speedLimitKmH\": 50,\n      \"intersection\": false\n    },\n    \"participants\": [\n      {\n        \"id\": \"P1\",\n        \"driver\": { \"id\": \"DRV-1\", \"fullName\": \"Driver 1\", \"yearsOfExperience\": 5, \"penaltyPoints\": 0 },\n        \"vehicle\": { \"licensePlate\": \"BP-001-AA\", \"category\": \"CAR\", \"hasLights\": true },\n        \"maneuver\": \"STRAIGHT\",\n        \"speedKmH\": 40,\n        \"distanceToVehicleAhead\": 0,\n        \"underAlcoholInfluence\": false,\n        \"ignoredRedLight\": false\n      },\n      {\n        \"id\": \"P2\",\n        \"driver\": { \"id\": \"DRV-2\", \"fullName\": \"Driver 2\", \"yearsOfExperience\": 5, \"penaltyPoints\": 0 },\n        \"vehicle\": { \"licensePlate\": \"BP-002-BB\", \"category\": \"CAR\", \"hasLights\": true },\n        \"maneuver\": \"STRAIGHT\",\n        \"speedKmH\": 45,\n        \"distanceToVehicleAhead\": 0,\n        \"underAlcoholInfluence\": false,\n        \"ignoredRedLight\": false\n      }\n    ],\n    \"injuredPersons\": false,\n    \"fatalOutcome\": false,\n    \"materialDamageRsd\": 0\n  },\n  \"declaredFaults\": [],\n  \"actions\": []\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/module2/determine-fault",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "module2", "determine-fault"]
+        }
+      }
+    }
+  ]
+}
