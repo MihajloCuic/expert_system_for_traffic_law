@@ -12,9 +12,9 @@ import org.kie.api.runtime.rule.EntryPoint;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ftn.sbnz.model.Driver;
-import com.ftn.sbnz.model.LicenseRevocation;
-import com.ftn.sbnz.model.PointPenalty;
+import com.ftn.sbnz.model.sanctions.Driver;
+import com.ftn.sbnz.model.sanctions.LicenseRevocation;
+import com.ftn.sbnz.model.sanctions.PointPenalty;
 import com.ftn.sbnz.service.repository.LicenseRevocationRepository;
 import com.ftn.sbnz.service.repository.PointPenaltyRepository;
 

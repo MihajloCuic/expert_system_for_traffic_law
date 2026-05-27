@@ -1,8 +1,8 @@
 package sanctions;
 
-import com.ftn.sbnz.model.Driver;
-import com.ftn.sbnz.model.Sanction;
-import com.ftn.sbnz.model.SanctionSummary;
+import com.ftn.sbnz.model.sanctions.Driver;
+import com.ftn.sbnz.model.sanctions.Sanction;
+import com.ftn.sbnz.model.sanctions.SanctionSummary;
 
 import java.util.ArrayList;
 import java.util.List;

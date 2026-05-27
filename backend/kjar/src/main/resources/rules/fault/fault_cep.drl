@@ -1,13 +1,13 @@
 package fault;
 
-import com.ftn.sbnz.model.Participant;
-import com.ftn.sbnz.model.Fault;
-import com.ftn.sbnz.model.FaultType;
-import com.ftn.sbnz.model.Blame;
-import com.ftn.sbnz.model.BlameType;
-import com.ftn.sbnz.model.CausedFault;
-import com.ftn.sbnz.model.ParticipantAction;
-import com.ftn.sbnz.model.ParticipantActionType;
+import com.ftn.sbnz.model.fault.Participant;
+import com.ftn.sbnz.model.fault.Fault;
+import com.ftn.sbnz.model.fault.FaultType;
+import com.ftn.sbnz.model.fault.Blame;
+import com.ftn.sbnz.model.fault.BlameType;
+import com.ftn.sbnz.model.fault.CausedFault;
+import com.ftn.sbnz.model.fault.ParticipantAction;
+import com.ftn.sbnz.model.fault.ParticipantActionType;
 
 // ============================================================
 // CEP – Complex Event Processing on "manevriStream" entry-point

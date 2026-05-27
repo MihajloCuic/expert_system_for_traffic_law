@@ -1,7 +1,7 @@
 package sanctions;
 
-import com.ftn.sbnz.model.Sanction;
-import com.ftn.sbnz.model.PointPenalty;
+import com.ftn.sbnz.model.sanctions.Sanction;
+import com.ftn.sbnz.model.sanctions.PointPenalty;
 
 import java.util.Date;
 

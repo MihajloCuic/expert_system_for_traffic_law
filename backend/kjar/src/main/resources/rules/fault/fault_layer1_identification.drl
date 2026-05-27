@@ -1,13 +1,13 @@
 package fault;
 
-import com.ftn.sbnz.model.Participant;
-import com.ftn.sbnz.model.AccidentScene;
-import com.ftn.sbnz.model.Fault;
-import com.ftn.sbnz.model.FaultType;
-import com.ftn.sbnz.model.Visibility;
-import com.ftn.sbnz.model.RoadCondition;
-import com.ftn.sbnz.model.Maneuver;
-import com.ftn.sbnz.model.SignalizationType;
+import com.ftn.sbnz.model.fault.Participant;
+import com.ftn.sbnz.model.fault.AccidentScene;
+import com.ftn.sbnz.model.fault.Fault;
+import com.ftn.sbnz.model.fault.FaultType;
+import com.ftn.sbnz.model.fault.Visibility;
+import com.ftn.sbnz.model.fault.RoadCondition;
+import com.ftn.sbnz.model.fault.Maneuver;
+import com.ftn.sbnz.model.fault.SignalizationType;
 
 // ============================================================
 // LAYER 1 – Fault identification from raw facts

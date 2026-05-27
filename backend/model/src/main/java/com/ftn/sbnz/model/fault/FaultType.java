@@ -1,0 +1,14 @@
+package com.ftn.sbnz.model.fault;
+
+public enum FaultType {
+    UNADJUSTED_SPEED,
+    RIGHT_OF_WAY_VIOLATION,
+    UNSAFE_DISTANCE,
+    ALCOHOL_INFLUENCE,
+    VEHICLE_DEFECT,
+    NO_LIGHTS,
+    PEDESTRIAN_NEGLIGENCE,
+    IMPROPER_OVERTAKING,
+    DELAYED_REACTION,
+    RED_LIGHT_RUN
+}

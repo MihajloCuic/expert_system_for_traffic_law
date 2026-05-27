@@ -16,11 +16,11 @@ explanation
 
 package sanctions;
 
-import com.ftn.sbnz.model.Violation;
-import com.ftn.sbnz.model.Sanction;
-import com.ftn.sbnz.model.ViolationType;
-import com.ftn.sbnz.model.VehicleCategory;
-import com.ftn.sbnz.model.Severity;
+import com.ftn.sbnz.model.sanctions.Violation;
+import com.ftn.sbnz.model.sanctions.Sanction;
+import com.ftn.sbnz.model.sanctions.ViolationType;
+import com.ftn.sbnz.model.shared.VehicleCategory;
+import com.ftn.sbnz.model.sanctions.Severity;
 
 // ============================================================
 // LAYER 1 - SPEEDING (vehicle-category-based) - TEMPLATE GENERATED

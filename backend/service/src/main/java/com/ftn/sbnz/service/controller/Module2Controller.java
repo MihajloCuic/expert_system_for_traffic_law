@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ftn.sbnz.model.Accident;
-import com.ftn.sbnz.model.Blame;
-import com.ftn.sbnz.model.Fault;
-import com.ftn.sbnz.model.Participant;
-import com.ftn.sbnz.model.ParticipantAction;
+import com.ftn.sbnz.model.fault.Accident;
+import com.ftn.sbnz.model.fault.Blame;
+import com.ftn.sbnz.model.fault.Fault;
+import com.ftn.sbnz.model.fault.Participant;
+import com.ftn.sbnz.model.fault.ParticipantAction;
 import com.ftn.sbnz.service.dto.FaultRequest;
 import com.ftn.sbnz.service.dto.FaultResponse;
 

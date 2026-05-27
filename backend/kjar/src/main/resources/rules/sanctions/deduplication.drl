@@ -1,6 +1,6 @@
 package sanctions;
 
-import com.ftn.sbnz.model.Sanction;
+import com.ftn.sbnz.model.sanctions.Sanction;
 
 // ============================================================
 // LAYER 3 - DEDUPLICATION (continuing offense / prekrsaj u produzenom trajanju)

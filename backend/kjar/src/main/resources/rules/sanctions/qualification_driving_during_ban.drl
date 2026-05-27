@@ -1,10 +1,10 @@
 package sanctions;
 
-import com.ftn.sbnz.model.LicenseRevocation;
-import com.ftn.sbnz.model.Sanction;
-import com.ftn.sbnz.model.Severity;
-import com.ftn.sbnz.model.Violation;
-import com.ftn.sbnz.model.ViolationType;
+import com.ftn.sbnz.model.sanctions.LicenseRevocation;
+import com.ftn.sbnz.model.sanctions.Sanction;
+import com.ftn.sbnz.model.sanctions.Severity;
+import com.ftn.sbnz.model.sanctions.Violation;
+import com.ftn.sbnz.model.sanctions.ViolationType;
 
 // ============================================================
 // LAYER 1 (explicit) and LAYER 2 (auto-derived)
@@ -50,10 +50,14 @@ rule "Driving during active license ban (explicit)"
 end
 
 rule "Driving during active license ban (auto-derived from pre-existing revocation)"
-    salience 6
+    salience 6  // Layer 2 - fires after Layer 1 qualification (7), before Layer 3 dedup (5)
     when
         $v : Violation($driver : driver)
-        LicenseRevocation(driver == $driver, id != null)
+        // `exists` so a driver with N historical revocations still produces
+        // ONE activation, not N. id != null filters out revocations created
+        // earlier in this session by Layer 8 (those are CONSEQUENCES of the
+        // current violations, not pre-existing bans the driver was breaking).
+        exists LicenseRevocation(driver == $driver, id != null)
         not Sanction(violation == $v, lawArticle matches ".*330.*pt\\. 8.*")
     then
         Sanction s = Sanction.builder()

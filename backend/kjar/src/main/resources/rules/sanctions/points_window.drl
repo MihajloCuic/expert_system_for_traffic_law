@@ -1,8 +1,8 @@
 package sanctions;
 
-import com.ftn.sbnz.model.Driver;
-import com.ftn.sbnz.model.PointPenalty;
-import com.ftn.sbnz.model.ActivePointsSnapshot;
+import com.ftn.sbnz.model.sanctions.Driver;
+import com.ftn.sbnz.model.sanctions.PointPenalty;
+import com.ftn.sbnz.model.sanctions.ActivePointsSnapshot;
 
 import java.time.LocalDate;
 

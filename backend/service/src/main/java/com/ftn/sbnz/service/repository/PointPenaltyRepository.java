@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.ftn.sbnz.model.PointPenalty;
+import com.ftn.sbnz.model.sanctions.PointPenalty;
 
 @Repository
 public interface PointPenaltyRepository extends JpaRepository<PointPenalty, Long> {

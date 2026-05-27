@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.ftn.sbnz.model.LicenseRevocation;
+import com.ftn.sbnz.model.sanctions.LicenseRevocation;
 
 @Repository
 public interface LicenseRevocationRepository extends JpaRepository<LicenseRevocation, Long> {
