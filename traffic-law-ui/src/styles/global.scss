@@ -1,0 +1,203 @@
+/* Global resets + the layout-level styles that the JSX reference
+   embedded in console.css. Ports class names verbatim so existing
+   mark-up survives unchanged. */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink-0);
+  background: var(--surface-0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; }
+input, select, textarea { font: inherit; }
+
+/* ============================================================
+   App shell layout (from ui_kits/officer-console/console.css)
+   ============================================================ */
+
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  min-height: 100vh;
+  background: var(--surface-0);
+}
+
+/* ----- Sidebar ----- */
+.sidebar {
+  background: var(--brand-navy);
+  color: var(--ink-onbrand);
+  padding: 16px 0 24px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 18px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+.sidebar-brand b {
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: white;
+  display: block;
+}
+.sidebar-brand .sub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 1px;
+}
+.sidebar-group { padding: 16px 0 4px; }
+.sidebar-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 0 18px 8px;
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 38px;
+  padding: 0 18px;
+  color: rgba(255, 255, 255, 0.78);
+  border-left: 3px solid transparent;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background var(--d-fast) var(--ease-civic), color var(--d-fast);
+  user-select: none;
+}
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+}
+.sidebar-item.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border-left-color: var(--brand-accent);
+  font-weight: 500;
+}
+
+/* ----- Main column ----- */
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.topbar {
+  height: var(--topbar-h);
+  background: var(--surface-0);
+  border-bottom: 1px solid var(--border-1);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.topbar .crumbs {
+  font-size: 13px;
+  color: var(--ink-1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.topbar .crumbs .sep { color: var(--ink-3); }
+.topbar .crumbs b { color: var(--ink-0); font-weight: 600; }
+.topbar .spacer { flex: 1; }
+
+/* ----- Page container ----- */
+.page {
+  padding: 28px 32px 80px;
+  max-width: 1080px;
+  width: 100%;
+}
+.page-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+.page-head h1 {
+  font-size: var(--t-32);
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.015em;
+  color: var(--brand-navy-ink);
+}
+.page-head .lede {
+  font-size: 14px;
+  color: var(--ink-1);
+  margin-top: 4px;
+}
+
+/* ----- Quick check screen ----- */
+.search-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-3);
+  padding: 28px 28px 24px;
+  margin-bottom: 22px;
+}
+.search-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+.search-row input { flex: 1; height: 44px; font-size: 16px; font-family: var(--font-mono); }
+.search-row .pp-btn { height: 44px; }
+
+/* ----- Empty state ----- */
+.empty {
+  background: var(--surface-1);
+  border: 1px dashed var(--border-2);
+  border-radius: var(--r-2);
+  padding: 36px 24px;
+  text-align: center;
+  color: var(--ink-2);
+}
+.empty .icon { color: var(--ink-3); margin-bottom: 12px; }
+.empty h3 { margin: 0 0 6px; color: var(--ink-1); font-size: 15px; }
+.empty p { margin: 0; font-size: 13px; }
+
+/* ----- Result key/value list ----- */
+.kv {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px 12px;
+  font-size: 14px;
+}
+.kv .k { color: var(--ink-1); }
+.kv .v { color: var(--ink-0); }
+.kv .v.mono { font-family: var(--font-mono); }
+
+/* ----- Stub placeholder pages (violation, fault, result) ----- */
+.stub-page {
+  padding: 80px 32px;
+  text-align: center;
+  color: var(--ink-2);
+}
+.stub-page h2 {
+  color: var(--ink-1);
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+.stub-page p { margin: 0; font-size: 14px; }

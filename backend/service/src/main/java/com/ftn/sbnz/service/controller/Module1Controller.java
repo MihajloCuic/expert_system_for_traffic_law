@@ -78,9 +78,11 @@ public class Module1Controller {
 
         KieSession session = droolsSessionService.openSessionFor(driver);
         try {
+            boolean globalAccident = request.isCausedAccident();
+
             // Officer-supplied violations
             for (IssueSanctionRequest.ViolationInput vi : request.getViolations()) {
-                insertViolation(session, driver, vehicle, vi);
+                insertViolation(session, driver, vehicle, vi, globalAccident);
             }
 
             // Auto-add ALCOHOL violation when BAC at stop is above the threshold
@@ -90,9 +92,17 @@ public class Module1Controller {
                         ViolationType.ALCOHOL, null);
                 v.setBloodAlcoholLevel(request.getBacAtStop());
                 session.insert(v);
+                // Mark the auto-added ALCOHOL with the accident flag too so
+                // its Sanction gets escalated alongside the explicit ones.
+                if (globalAccident) {
+                    ViolationContext ctx = new ViolationContext(v);
+                    ctx.setCausedAccident(true);
+                    session.insert(ctx);
+                }
                 System.out.println("[CTRL] Auto-added ALCOHOL violation"
                         + " (BAC " + request.getBacAtStop() + " > "
-                        + ALCOHOL_VIOLATION_THRESHOLD + ")");
+                        + ALCOHOL_VIOLATION_THRESHOLD + ")"
+                        + (globalAccident ? " + accident context" : ""));
             }
 
             session.fireAllRules();
@@ -208,7 +218,8 @@ public class Module1Controller {
     }
 
     private void insertViolation(KieSession session, Driver driver, Vehicle vehicle,
-                                 IssueSanctionRequest.ViolationInput vi) {
+                                 IssueSanctionRequest.ViolationInput vi,
+                                 boolean globalAccident) {
         Violation v = new Violation(driver, vehicle, vi.getType(), vi.getLocation());
         if (vi.getSpeedOverLimitKmH() != null) {
             v.setSpeedOverLimitKmH(vi.getSpeedOverLimitKmH());
@@ -218,9 +229,14 @@ public class Module1Controller {
         }
         session.insert(v);
 
-        if (vi.isCausedAccident() || vi.isInjuredPersons() || vi.isPedestrianIsChild()) {
+        // Per-violation flags OR the top-level "globalAccident" flag from the
+        // request both contribute to the context. When the officer ticks the
+        // top-level accident checkbox in the UI, every violation in the
+        // submission inherits causedAccident=true.
+        boolean caused = vi.isCausedAccident() || globalAccident;
+        if (caused || vi.isInjuredPersons() || vi.isPedestrianIsChild()) {
             ViolationContext ctx = new ViolationContext(v);
-            ctx.setCausedAccident(vi.isCausedAccident());
+            ctx.setCausedAccident(caused);
             ctx.setInjuredPersons(vi.isInjuredPersons());
             ctx.setPedestrianIsChild(vi.isPedestrianIsChild());
             session.insert(ctx);

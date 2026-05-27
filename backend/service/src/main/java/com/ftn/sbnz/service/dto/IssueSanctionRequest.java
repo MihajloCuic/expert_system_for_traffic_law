@@ -39,6 +39,14 @@ public class IssueSanctionRequest {
      */
     private Double bacAtStop;
 
+    /**
+     * Whether the violation(s) being reported caused a traffic accident.
+     * Top-level flag: when true, the controller marks EVERY violation
+     * in this submission (including the auto-added ALCOHOL one) with
+     * causedAccident=true so the accident-escalation rules apply to all.
+     */
+    private boolean causedAccident;
+
     private List<ViolationInput> violations = new ArrayList<>();
 
     public IssueSanctionRequest() {}
@@ -51,6 +59,9 @@ public class IssueSanctionRequest {
 
     public Double getBacAtStop() { return bacAtStop; }
     public void setBacAtStop(Double bacAtStop) { this.bacAtStop = bacAtStop; }
+
+    public boolean isCausedAccident() { return causedAccident; }
+    public void setCausedAccident(boolean causedAccident) { this.causedAccident = causedAccident; }
 
     public List<ViolationInput> getViolations() { return violations; }
     public void setViolations(List<ViolationInput> violations) { this.violations = violations; }
