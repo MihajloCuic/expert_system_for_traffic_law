@@ -3,25 +3,30 @@ package com.ftn.sbnz.service.dto;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
-import com.ftn.sbnz.model.ActivePointsSnapshot;
-import com.ftn.sbnz.model.LicenseRevocation;
-import com.ftn.sbnz.model.Sanction;
-import com.ftn.sbnz.model.SanctionSummary;
-import com.ftn.sbnz.model.Severity;
+import com.ftn.sbnz.model.sanctions.ActivePointsSnapshot;
+import com.ftn.sbnz.model.sanctions.Driver;
+import com.ftn.sbnz.model.sanctions.DrivingLicense;
+import com.ftn.sbnz.model.sanctions.LicenseCategory;
+import com.ftn.sbnz.model.sanctions.LicenseRevocation;
+import com.ftn.sbnz.model.sanctions.LicenseType;
+import com.ftn.sbnz.model.sanctions.Sanction;
+import com.ftn.sbnz.model.sanctions.SanctionSummary;
+import com.ftn.sbnz.model.sanctions.Severity;
 
 /**
  * End-to-end result of POST /api/module1/issue-sanction. Carries every piece
  * of information the police officer / UI needs:
- *   - each individual Sanction produced by Layer 1-2,
- *   - the per-driver SanctionSummary produced by Layer 3 (sticaj prekrsaja),
- *   - the CEP active-points snapshot (Layer 4),
- *   - the LicenseRevocation if Layer 5 fired.
+ *   - the driver and (optional) license,
+ *   - each individual Sanction produced by Layer 1-4,
+ *   - the per-driver SanctionSummary produced by Layer 5 (sticaj prekrsaja),
+ *   - the CEP active-points snapshot (Layer 7),
+ *   - the LicenseRevocation if Layer 8 fired.
  */
 public class IssueSanctionResponse {
 
-    private String driverId;
-    private String driverFullName;
+    private DriverDto driver;
     private boolean probationary;
 
     private List<SanctionDto> sanctions = new ArrayList<>();
@@ -31,13 +36,8 @@ public class IssueSanctionResponse {
 
     public IssueSanctionResponse() {}
 
-    // === Getters / setters ===
-
-    public String getDriverId() { return driverId; }
-    public void setDriverId(String driverId) { this.driverId = driverId; }
-
-    public String getDriverFullName() { return driverFullName; }
-    public void setDriverFullName(String driverFullName) { this.driverFullName = driverFullName; }
+    public DriverDto getDriver() { return driver; }
+    public void setDriver(DriverDto driver) { this.driver = driver; }
 
     public boolean isProbationary() { return probationary; }
     public void setProbationary(boolean probationary) { this.probationary = probationary; }
@@ -54,7 +54,45 @@ public class IssueSanctionResponse {
     public RevocationDto getRevocation() { return revocation; }
     public void setRevocation(RevocationDto revocation) { this.revocation = revocation; }
 
-    // === Nested DTOs ===
+    // ============================================================
+    // Nested DTOs
+    // ============================================================
+
+    public static class DriverDto {
+        public String id;
+        public String firstName;
+        public String lastName;
+        public String fullName;
+        public LocalDate dateOfBirth;
+        public LicenseDto license;
+
+        public static DriverDto from(Driver d) {
+            DriverDto dto = new DriverDto();
+            dto.id = d.getId();
+            dto.firstName = d.getFirstName();
+            dto.lastName = d.getLastName();
+            dto.fullName = d.getFullName();
+            dto.dateOfBirth = d.getDateOfBirth();
+            dto.license = d.getLicense() == null ? null : LicenseDto.from(d.getLicense());
+            return dto;
+        }
+    }
+
+    public static class LicenseDto {
+        public String licenseNumber;
+        public LocalDate issuedAt;
+        public LicenseType type;
+        public Set<LicenseCategory> categories;
+
+        public static LicenseDto from(DrivingLicense l) {
+            LicenseDto dto = new LicenseDto();
+            dto.licenseNumber = l.getLicenseNumber();
+            dto.issuedAt = l.getIssuedAt();
+            dto.type = l.getType();
+            dto.categories = l.getCategories();
+            return dto;
+        }
+    }
 
     public static class SanctionDto {
         public String lawArticle;

@@ -1,8 +1,8 @@
 package sanctions;
 
-import com.ftn.sbnz.model.Driver;
-import com.ftn.sbnz.model.ActivePointsSnapshot;
-import com.ftn.sbnz.model.LicenseRevocation;
+import com.ftn.sbnz.model.sanctions.Driver;
+import com.ftn.sbnz.model.sanctions.ActivePointsSnapshot;
+import com.ftn.sbnz.model.sanctions.LicenseRevocation;
 
 import java.time.LocalDate;
 
@@ -13,11 +13,11 @@ import java.time.LocalDate;
 //   - 18+ points  -> revoke STANDARD license
 //   - 9+ points   -> revoke PROBATIONARY license
 //
-// A driver is treated as probationary when:
-//   - now < licenseIssuedAt + 2 years, OR
-//   - the driver obtained the license before turning 19 AND
-//     has not yet turned 21.
-// (Helper Driver.isProbationary() encapsulates this.)
+// Probationary status is read directly from the DrivingLicense entity
+// (Driver.license.type == LicenseType.PROBATIONARY). Helper
+// {@code Driver.isProbationary()} returns false when the driver has no
+// license at all, so neither rule fires in that case - a license-less
+// driver is already sanctioned via the NO_LICENSE rule.
 //
 // "not LicenseRevocation(driver == $d)" prevents double-revocation.
 // salience 0 (default) - the last layer to fire in the chain.
@@ -27,7 +27,7 @@ rule "License revocation: standard license (18+ points)"
     salience 0
     when
         $d : Driver()
-        eval($d.isProbationary(LocalDate.now()) == false)
+        eval($d.isProbationary() == false)
         $snap : ActivePointsSnapshot(driver == $d, activePoints >= 18)
         not LicenseRevocation(driver == $d)
     then
@@ -45,7 +45,7 @@ rule "License revocation: probationary license (9+ points)"
     salience 0
     when
         $d : Driver()
-        eval($d.isProbationary(LocalDate.now()) == true)
+        eval($d.isProbationary() == true)
         $snap : ActivePointsSnapshot(driver == $d, activePoints >= 9)
         not LicenseRevocation(driver == $d)
     then

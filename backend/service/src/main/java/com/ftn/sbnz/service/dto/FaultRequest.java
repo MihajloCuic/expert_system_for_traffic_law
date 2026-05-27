@@ -3,9 +3,9 @@ package com.ftn.sbnz.service.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ftn.sbnz.model.Accident;
-import com.ftn.sbnz.model.Fault;
-import com.ftn.sbnz.model.ParticipantAction;
+import com.ftn.sbnz.model.fault.Accident;
+import com.ftn.sbnz.model.fault.Fault;
+import com.ftn.sbnz.model.fault.ParticipantAction;
 
 public class FaultRequest {
 

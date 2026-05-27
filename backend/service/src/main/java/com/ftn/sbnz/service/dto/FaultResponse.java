@@ -3,7 +3,7 @@ package com.ftn.sbnz.service.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ftn.sbnz.model.Blame;
+import com.ftn.sbnz.model.fault.Blame;
 
 public class FaultResponse {
 

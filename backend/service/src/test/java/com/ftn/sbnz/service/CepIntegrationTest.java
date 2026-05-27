@@ -15,14 +15,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ftn.sbnz.model.Driver;
-import com.ftn.sbnz.model.LicenseRevocation;
-import com.ftn.sbnz.model.Location;
-import com.ftn.sbnz.model.PointPenalty;
-import com.ftn.sbnz.model.Vehicle;
-import com.ftn.sbnz.model.VehicleCategory;
-import com.ftn.sbnz.model.Violation;
-import com.ftn.sbnz.model.ViolationType;
+import java.util.Set;
+
+import com.ftn.sbnz.model.sanctions.Driver;
+import com.ftn.sbnz.model.sanctions.DrivingLicense;
+import com.ftn.sbnz.model.sanctions.LicenseCategory;
+import com.ftn.sbnz.model.sanctions.LicenseRevocation;
+import com.ftn.sbnz.model.sanctions.LicenseType;
+import com.ftn.sbnz.model.sanctions.Location;
+import com.ftn.sbnz.model.sanctions.PointPenalty;
+import com.ftn.sbnz.model.shared.Vehicle;
+import com.ftn.sbnz.model.shared.VehicleCategory;
+import com.ftn.sbnz.model.sanctions.Violation;
+import com.ftn.sbnz.model.sanctions.ViolationType;
 import com.ftn.sbnz.service.repository.DriverRepository;
 import com.ftn.sbnz.service.repository.LicenseRevocationRepository;
 import com.ftn.sbnz.service.repository.PointPenaltyRepository;
@@ -161,7 +166,7 @@ class CepIntegrationTest {
 
         // Find any "330 pt. 8" sanction in the session
         boolean hasDuringBanSanction = session.getObjects().stream()
-            .anyMatch(o -> o instanceof com.ftn.sbnz.model.Sanction s
+            .anyMatch(o -> o instanceof com.ftn.sbnz.model.sanctions.Sanction s
                 && s.getLawArticle() != null
                 && s.getLawArticle().contains("330")
                 && s.getLawArticle().contains("8"));
@@ -177,16 +182,21 @@ class CepIntegrationTest {
     // -----------------------------------------------------------------
 
     private Driver saveStandardDriver(String id, String name) {
-        Driver d = new Driver(id, name, 10, 0,
-            LocalDate.of(1990, 1, 1), LocalDate.of(2010, 1, 1));
+        DrivingLicense lic = new DrivingLicense(
+            "LIC-" + id, LocalDate.of(2010, 1, 1),
+            LicenseType.PERMANENT, Set.of(LicenseCategory.B));
+        Driver d = new Driver(id, name, "Tester",
+            LocalDate.of(1990, 1, 1), lic);
         return driverRepository.save(d);
     }
 
     private Driver saveProbationaryDriver(String id, String name) {
-        // Got license 6 months ago, person is 20 years old -> still on probation
-        Driver d = new Driver(id, name, 1, 0,
-            LocalDate.now().minusYears(20),
-            LocalDate.now().minusMonths(6));
+        // License issued 6 months ago -> still on probation
+        DrivingLicense lic = new DrivingLicense(
+            "LIC-" + id, LocalDate.now().minusMonths(6),
+            LicenseType.PROBATIONARY, Set.of(LicenseCategory.B));
+        Driver d = new Driver(id, name, "Tester",
+            LocalDate.now().minusYears(20), lic);
         return driverRepository.save(d);
     }
 
@@ -200,7 +210,7 @@ class CepIntegrationTest {
     }
 
     private void fireAndPersist(Driver driver, Violation violation,
-                                com.ftn.sbnz.model.ViolationContext ctx) {
+                                com.ftn.sbnz.model.sanctions.ViolationContext ctx) {
         KieSession session = droolsSessionService.openSessionFor(driver);
         try {
             session.insert(violation);
