@@ -154,7 +154,7 @@ class CepIntegrationTest {
         Violation v = newViolation(d, ViolationType.IMPROPER_DISTANCE, Location.ANY);
 
         KieSession session = droolsSessionService.openSessionFor(d);
-        Vehicle vehicle = new Vehicle("UNKNOWN", VehicleCategory.CAR);
+        Vehicle vehicle = new Vehicle(VehicleCategory.CAR);
         v.setVehicle(vehicle);
         session.insert(v);
         session.fireAllRules();
@@ -195,7 +195,7 @@ class CepIntegrationTest {
     }
 
     private static Violation newViolation(Driver d, ViolationType type, Location loc) {
-        Vehicle vehicle = new Vehicle("TST", VehicleCategory.CAR);
+        Vehicle vehicle = new Vehicle(VehicleCategory.CAR);
         return new Violation(d, vehicle, type, loc);
     }
 

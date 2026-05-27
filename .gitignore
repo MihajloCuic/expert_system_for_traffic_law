@@ -95,3 +95,9 @@ snbz-error.txt
 *.dump
 *.dumpstream
 *.png.bak
+
+# H2 database files (file-based DB stored in ./data/)
+data/
+*.mv.db
+*.trace.db
+*.lock.db

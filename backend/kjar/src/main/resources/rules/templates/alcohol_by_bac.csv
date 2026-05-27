@@ -1,0 +1,7 @@
+description;bacMin;bacMax;article;severity;minFine;maxFine;points;banDays;prisonMin;prisonMax;communityServiceMin;communityServiceMax;alternativePenalty;explanation
+moderate 0.21-0.50;0.21;0.50;ZOBS art. 187 par. 2, 4 (penal art. 332a);PETTY;10000;10000;0;0;0;0;0;0;false;Alcohol 0.21-0.50 per mille (moderate) -> 10.000 RSD
+medium 0.51-0.80;0.51;0.80;ZOBS art. 187 par. 2, 4 (penal art. 332);MODERATE;10000;20000;6;90;0;0;0;0;false;Alcohol 0.51-0.80 per mille (medium) -> 10-20k RSD + 6 points + 3 months ban
+high 0.81-1.20;0.81;1.20;ZOBS art. 187 par. 2, 4 (penal art. 331);MAJOR;20000;40000;8;120;0;30;0;0;true;Alcohol 0.81-1.20 per mille (high) -> 20-40k RSD OR prison <= 30 days + 8 points + 4 months ban
+heavy 1.21-1.60;1.21;1.60;ZOBS art. 187 par. 2, 4 (penal art. 330);SEVERE;100000;120000;14;240;15;30;0;0;true;Alcohol 1.21-1.60 per mille (heavy) -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban
+very heavy 1.61-2.00;1.61;2.00;ZOBS art. 187 par. 2, 4 (penal art. 330);SEVERE;100000;120000;14;240;15;30;0;0;true;Alcohol 1.61-2.00 per mille (very heavy) -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban
+reckless over 2.00;2.01;9.99;ZOBS art. 187 (penal art. 329 - reckless driving);VIOLENT;120000;140000;15;270;30;60;240;360;true;Alcohol > 2.00 per mille -> 120-140k RSD + prison or community service + 15 points + 9 months ban (RECKLESS DRIVING)

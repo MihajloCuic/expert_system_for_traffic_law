@@ -6,29 +6,29 @@ import com.ftn.sbnz.model.PointPenalty;
 import java.util.Date;
 
 // ============================================================
-// LAYER 3.5 - POINT EMISSION
+// LAYER 6 - POINT EMISSION
 //
 // For every Sanction whose finalPoints > 0, emit a PointPenalty event into
 // the "pointsStream" entry-point with timestamp "now".
 //
-// Without this step, the Layer 4 CEP sliding window would only see HISTORICAL
+// Without this step, the Layer 7 CEP sliding window would only see HISTORICAL
 // penalty point events (those loaded from the H2 database in
 // DroolsSessionService.openSessionFor). The current case's points would be
 // invisible to the 24-month window and therefore to the revocation check.
 //
-// salience -15 places this BETWEEN Layer 3 accumulation (salience -10) and
-// Layer 4 CEP window (salience -20):
-//   1. Layer 3 creates SanctionSummary from current sanctions.
-//   2. Layer 3.5 emits PointPenalty events for those same sanctions.
-//   3. Layer 4 accumulates historical + just-emitted -> ActivePointsSnapshot.
-//   4. Layer 5 checks the threshold.
+// salience 2 places this BETWEEN Layer 5 accumulation (salience 3) and
+// Layer 7 CEP window (salience 1):
+//   1. Layer 5 creates SanctionSummary from current sanctions.
+//   2. Layer 6 emits PointPenalty events for those same sanctions.
+//   3. Layer 7 accumulates historical + just-emitted -> ActivePointsSnapshot.
+//   4. Layer 8 checks the threshold.
 //
 // no-loop true: this rule does not re-trigger on its own emissions, because
 // PointPenalty is not in its LHS.
 // ============================================================
 
 rule "Emit PointPenalty for current Sanction"
-    salience -15
+    salience 2
     no-loop true
     when
         $s : Sanction($v : violation, $points : finalPoints, finalPoints > 0)
@@ -39,6 +39,6 @@ rule "Emit PointPenalty for current Sanction"
             new Date(),
             "current-" + System.identityHashCode($s));
         kcontext.getKieRuntime().getEntryPoint("pointsStream").insert(pp);
-        System.out.println("[FIRED] L3.5 Emitted " + $points + " points for "
+        System.out.println("[FIRED] L6 Emitted " + $points + " points for "
             + $v.getDriver().getFullName() + " into pointsStream");
 end

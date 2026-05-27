@@ -7,16 +7,17 @@ import com.ftn.sbnz.model.Violation;
 import com.ftn.sbnz.model.ViolationType;
 
 // ============================================================
-// LAYER 1 - DRIVING DURING ACTIVE BAN (ZOBS art. 330 par. 1 pt. 8)
+// LAYER 1 (explicit) and LAYER 2 (auto-derived)
+//   - DRIVING DURING ACTIVE BAN (ZOBS art. 330 par. 1 pt. 8)
 //
 // Two complementary paths produce this Sanction:
 //
-//   (a) An officer explicitly logs a DRIVING_DURING_BAN violation.
+//   (a) An officer explicitly logs a DRIVING_DURING_BAN violation.   (Layer 1)
 //
-//   (b) The driver already has a PRE-EXISTING LicenseRevocation (loaded
-//       from the database, id != null) AND commits any other violation.
-//       The act of driving despite an existing ban is itself a separate
-//       offense under ZOBS art. 330 par. 1 pt. 8.
+//   (b) The driver already has a PRE-EXISTING LicenseRevocation       (Layer 2)
+//       (loaded from the database, id != null) AND commits any other
+//       violation. The act of driving despite an existing ban is itself
+//       a separate offense under ZOBS art. 330 par. 1 pt. 8.
 //
 // The "id != null" filter is critical: we must NOT apply this rule to a
 // LicenseRevocation that was just created in the current session as a
@@ -28,6 +29,7 @@ import com.ftn.sbnz.model.ViolationType;
 // ============================================================
 
 rule "Driving during active license ban (explicit)"
+    salience 7
     when
         $v : Violation(type == ViolationType.DRIVING_DURING_BAN)
         not Sanction(violation == $v, lawArticle matches ".*330.*pt\\. 8.*")
@@ -48,14 +50,10 @@ rule "Driving during active license ban (explicit)"
 end
 
 rule "Driving during active license ban (auto-derived from pre-existing revocation)"
-    salience 50  // fires AFTER qualification (0) but BEFORE accident escalation (100)
+    salience 6
     when
-        // ANY violation committed by the driver
         $v : Violation($driver : driver)
-        // and the driver has an ALREADY-PERSISTED license revocation (id != null
-        // means it was loaded from the database, not produced by L5 in this session)
         LicenseRevocation(driver == $driver, id != null)
-        // ... but we haven't yet added the "driving during ban" sanction for this Violation
         not Sanction(violation == $v, lawArticle matches ".*330.*pt\\. 8.*")
     then
         Sanction s = Sanction.builder()
@@ -68,7 +66,7 @@ rule "Driving during active license ban (auto-derived from pre-existing revocati
             .points(14)
             .drivingBanDays(240)
             .build();
-        s.addExplanation("[L1] Driver has a pre-existing LicenseRevocation -> driving itself is a separate offense under ZOBS art. 330 par. 1 pt. 8 (100-120k RSD + prison + 14 points + 8 months ban)");
+        s.addExplanation("[L2] Driver has a pre-existing LicenseRevocation -> driving itself is a separate offense under ZOBS art. 330 par. 1 pt. 8 (100-120k RSD + prison + 14 points + 8 months ban)");
         insert(s);
         System.out.println("[FIRED] Driving during active ban (auto-derived from pre-existing revocation)");
 end

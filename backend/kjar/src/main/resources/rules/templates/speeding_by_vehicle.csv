@@ -1,0 +1,5 @@
+description;vehicleCategory;minSpeedOver;maxSpeedOver;article;severity;minFine;maxFine;points;banDays;prisonMin;prisonMax;alternativePenalty;explanation
+BUS 11-20;BUS;11;20;ZOBS art. 45 par. 1 pt. 4 (penal art. 333);MINOR;5000;5000;0;0;0;0;false;Speeding BUS 11-20 km/h over (bus-specific limit) -> 5.000 RSD
+BUS 21-50;BUS;21;50;ZOBS art. 45 par. 1 pt. 4 (penal art. 332);MODERATE;10000;20000;4;30;0;0;false;Speeding BUS 21-50 km/h over -> 10-20k RSD + 4 points + 30 days ban
+BUS 51-70;BUS;51;70;ZOBS art. 45 par. 1 pt. 4 (penal art. 331);MAJOR;20000;40000;7;120;0;30;true;Speeding BUS 51-70 km/h over -> 20-40k RSD OR prison <= 30 days + 7 points + 4 months ban
+BUS over 70;BUS;71;999;ZOBS art. 45 par. 1 pt. 4 (penal art. 330);SEVERE;100000;120000;14;240;15;30;true;Speeding BUS > 70 km/h over -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban

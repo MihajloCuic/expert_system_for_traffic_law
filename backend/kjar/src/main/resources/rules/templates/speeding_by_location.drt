@@ -1,0 +1,60 @@
+template header
+description
+location
+minSpeedOver
+maxSpeedOver
+article
+severity
+minFine
+maxFine
+points
+banDays
+prisonMin
+prisonMax
+communityServiceMin
+communityServiceMax
+alternativePenalty
+explanation
+
+package sanctions;
+
+import com.ftn.sbnz.model.Violation;
+import com.ftn.sbnz.model.Sanction;
+import com.ftn.sbnz.model.ViolationType;
+import com.ftn.sbnz.model.Location;
+import com.ftn.sbnz.model.Severity;
+
+// ============================================================
+// LAYER 1 - SPEEDING (location-based) - TEMPLATE GENERATED
+//
+// One rule is produced per CSV row of speeding_by_location.csv.
+// Replaces hardcoded rules 1-12 and 17 from qualification_speeding.drl.
+// ============================================================
+
+template "speeding-by-location"
+
+rule "Speeding tariff loc @{row.rowNumber} - @{description}"
+    salience 7
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       location == Location.@{location},
+                       speedOverLimitKmH >= @{minSpeedOver},
+                       speedOverLimitKmH <= @{maxSpeedOver})
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("@{article}")
+            .severity(Severity.@{severity})
+            .fine(@{minFine}, @{maxFine})
+            .points(@{points})
+            .drivingBanDays(@{banDays})
+            .prison(@{prisonMin}, @{prisonMax})
+            .communityService(@{communityServiceMin}, @{communityServiceMax})
+            .alternativePenalty(@{alternativePenalty})
+            .build();
+        s.addExplanation("[L1-TEMPLATE] @{explanation}");
+        insert(s);
+        System.out.println("[FIRED-T] Speeding loc @{location} @{minSpeedOver}-@{maxSpeedOver}");
+end
+
+end template

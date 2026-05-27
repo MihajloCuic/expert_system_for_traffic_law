@@ -7,7 +7,7 @@ import com.ftn.sbnz.model.ActivePointsSnapshot;
 import java.time.LocalDate;
 
 // ============================================================
-// LAYER 4 - ACTIVE PENALTY POINTS (CEP)
+// LAYER 7 - ACTIVE PENALTY POINTS (CEP)
 //
 // Implements the 24-month rolling window prescribed by the
 // "Pravilnik o kaznenim poenima":
@@ -25,7 +25,7 @@ import java.time.LocalDate;
 // ============================================================
 
 rule "Compute active penalty points (24mo rolling window)"
-    salience -20
+    salience 1
     when
         $d : Driver()
         not ActivePointsSnapshot(driver == $d)
@@ -39,7 +39,7 @@ rule "Compute active penalty points (24mo rolling window)"
         ActivePointsSnapshot snap = new ActivePointsSnapshot(
             $d, $totalActive.intValue(), LocalDate.now());
         insert(snap);
-        System.out.println("[FIRED] L4 Active points snapshot for "
+        System.out.println("[FIRED] L7 Active points snapshot for "
             + $d.getFullName() + " = " + $totalActive.intValue()
             + " points (within last 24 months)");
 end
