@@ -1,0 +1,58 @@
+template header
+description
+bacMin
+bacMax
+article
+severity
+minFine
+maxFine
+points
+banDays
+prisonMin
+prisonMax
+communityServiceMin
+communityServiceMax
+alternativePenalty
+explanation
+
+package sanctions;
+
+import com.ftn.sbnz.model.Violation;
+import com.ftn.sbnz.model.Sanction;
+import com.ftn.sbnz.model.ViolationType;
+import com.ftn.sbnz.model.Severity;
+
+// ============================================================
+// LAYER 1 - ALCOHOL (BAC-based) - TEMPLATE GENERATED
+//
+// One rule is produced per CSV row of alcohol_by_bac.csv.
+// Replaces hardcoded rules 18-23 from qualification_alcohol.drl
+// (ZOBS art. 187 par. 2, 4).
+// ============================================================
+
+template "alcohol-by-bac"
+
+rule "Alcohol tariff @{row.rowNumber} - @{description}"
+    salience 7
+    when
+        $v : Violation(type == ViolationType.ALCOHOL,
+                       bloodAlcoholLevel >= @{bacMin},
+                       bloodAlcoholLevel <= @{bacMax})
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("@{article}")
+            .severity(Severity.@{severity})
+            .fine(@{minFine}, @{maxFine})
+            .points(@{points})
+            .drivingBanDays(@{banDays})
+            .prison(@{prisonMin}, @{prisonMax})
+            .communityService(@{communityServiceMin}, @{communityServiceMax})
+            .alternativePenalty(@{alternativePenalty})
+            .build();
+        s.addExplanation("[L1-TEMPLATE] @{explanation}");
+        insert(s);
+        System.out.println("[FIRED-T] Alcohol BAC @{bacMin}-@{bacMax}");
+end
+
+end template

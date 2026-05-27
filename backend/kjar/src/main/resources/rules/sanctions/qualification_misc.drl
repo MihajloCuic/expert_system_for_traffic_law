@@ -13,6 +13,7 @@ import com.ftn.sbnz.model.Severity;
 // --- License (48-49) ---
 
 rule "48 Driving without license"
+    salience 7
     when
         $v : Violation(type == ViolationType.NO_LICENSE)
     then
@@ -32,6 +33,7 @@ rule "48 Driving without license"
 end
 
 rule "49 Wrong license category"
+    salience 7
     when
         $v : Violation(type == ViolationType.WRONG_LICENSE_CATEGORY)
     then
@@ -51,6 +53,7 @@ end
 // --- Accident (50-51) ---
 
 rule "50 Fleeing scene of accident"
+    salience 7
     when
         $v : Violation(type == ViolationType.FLEEING_SCENE)
     then
@@ -70,6 +73,7 @@ rule "50 Fleeing scene of accident"
 end
 
 rule "51 Failure to report accident"
+    salience 7
     when
         $v : Violation(type == ViolationType.FAILURE_TO_REPORT_ACCIDENT)
     then
@@ -87,6 +91,7 @@ end
 // --- Parking (52-55) ---
 
 rule "52 Parking on pedestrian crossing"
+    salience 7
     when
         $v : Violation(type == ViolationType.PARKING_ON_PEDESTRIAN_CROSSING)
     then
@@ -102,6 +107,7 @@ rule "52 Parking on pedestrian crossing"
 end
 
 rule "53 Parking on disabled spot"
+    salience 7
     when
         $v : Violation(type == ViolationType.PARKING_ON_DISABLED_SPOT)
     then
@@ -117,6 +123,7 @@ rule "53 Parking on disabled spot"
 end
 
 rule "54 Parking blocking traffic"
+    salience 7
     when
         $v : Violation(type == ViolationType.PARKING_BLOCKING_TRAFFIC)
     then
@@ -132,6 +139,7 @@ rule "54 Parking blocking traffic"
 end
 
 rule "55 Improper parking"
+    salience 7
     when
         $v : Violation(type == ViolationType.IMPROPER_PARKING)
     then
@@ -149,6 +157,7 @@ end
 // --- Misc (56-58) ---
 
 rule "56 Not possessing high-visibility vest"
+    salience 7
     when
         $v : Violation(type == ViolationType.NO_HIGH_VISIBILITY_VEST)
     then
@@ -164,6 +173,7 @@ rule "56 Not possessing high-visibility vest"
 end
 
 rule "57 Not removing road hazard"
+    salience 7
     when
         $v : Violation(type == ViolationType.NOT_REMOVING_ROAD_HAZARD)
     then
@@ -179,6 +189,7 @@ rule "57 Not removing road hazard"
 end
 
 rule "58 Improper horn use"
+    salience 7
     when
         $v : Violation(type == ViolationType.IMPROPER_HORN_USE)
     then

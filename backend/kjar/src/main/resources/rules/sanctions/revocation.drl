@@ -7,9 +7,9 @@ import com.ftn.sbnz.model.LicenseRevocation;
 import java.time.LocalDate;
 
 // ============================================================
-// LAYER 5 - LICENSE REVOCATION
+// LAYER 8 - LICENSE REVOCATION
 //
-// Based on the active-points snapshot produced by Layer 4 (CEP):
+// Based on the active-points snapshot produced by Layer 7 (CEP):
 //   - 18+ points  -> revoke STANDARD license
 //   - 9+ points   -> revoke PROBATIONARY license
 //
@@ -20,10 +20,11 @@ import java.time.LocalDate;
 // (Helper Driver.isProbationary() encapsulates this.)
 //
 // "not LicenseRevocation(driver == $d)" prevents double-revocation.
+// salience 0 (default) - the last layer to fire in the chain.
 // ============================================================
 
 rule "License revocation: standard license (18+ points)"
-    salience -30
+    salience 0
     when
         $d : Driver()
         eval($d.isProbationary(LocalDate.now()) == false)
@@ -36,12 +37,12 @@ rule "License revocation: standard license (18+ points)"
             false,
             "Active penalty points >= 18 within last 24 months (standard license)");
         insert(rev);
-        System.out.println("[FIRED] L5 LICENSE REVOKED (standard): "
+        System.out.println("[FIRED] L8 LICENSE REVOKED (standard): "
             + $d.getFullName() + " - " + $snap.getActivePoints() + " active points");
 end
 
 rule "License revocation: probationary license (9+ points)"
-    salience -30
+    salience 0
     when
         $d : Driver()
         eval($d.isProbationary(LocalDate.now()) == true)
@@ -54,6 +55,6 @@ rule "License revocation: probationary license (9+ points)"
             true,
             "Active penalty points >= 9 within last 24 months (probationary license)");
         insert(rev);
-        System.out.println("[FIRED] L5 LICENSE REVOKED (probationary): "
+        System.out.println("[FIRED] L8 LICENSE REVOKED (probationary): "
             + $d.getFullName() + " - " + $snap.getActivePoints() + " active points");
 end

@@ -12,6 +12,7 @@ import com.ftn.sbnz.model.Severity;
 // --- Overtaking (30-33) ---
 
 rule "30 Overtaking across solid line"
+    salience 7
     when
         $v : Violation(type == ViolationType.OVERTAKING_SOLID_LINE)
     then
@@ -31,6 +32,7 @@ rule "30 Overtaking across solid line"
 end
 
 rule "31 Overtaking at pedestrian crossing"
+    salience 7
     when
         $v : Violation(type == ViolationType.OVERTAKING_AT_CROSSING)
     then
@@ -46,6 +48,7 @@ rule "31 Overtaking at pedestrian crossing"
 end
 
 rule "32 Overtaking on hilltop / sharp curve"
+    salience 7
     when
         $v : Violation(type == ViolationType.OVERTAKING_HILLTOP)
     then
@@ -65,6 +68,7 @@ rule "32 Overtaking on hilltop / sharp curve"
 end
 
 rule "33 Crossing solid line"
+    salience 7
     when
         $v : Violation(type == ViolationType.CROSSING_SOLID_LINE)
     then
@@ -86,6 +90,7 @@ end
 // --- Direction of travel (34-38) ---
 
 rule "34 Wrong way on one-way street"
+    salience 7
     when
         $v : Violation(type == ViolationType.WRONG_WAY_ONE_WAY)
     then
@@ -103,6 +108,7 @@ rule "34 Wrong way on one-way street"
 end
 
 rule "35 Forbidden U-turn"
+    salience 7
     when
         $v : Violation(type == ViolationType.FORBIDDEN_U_TURN)
     then
@@ -119,6 +125,7 @@ rule "35 Forbidden U-turn"
 end
 
 rule "36 Driving in reverse on dangerous spot"
+    salience 7
     when
         $v : Violation(type == ViolationType.DRIVING_IN_REVERSE_DANGEROUS)
     then
@@ -134,6 +141,7 @@ rule "36 Driving in reverse on dangerous spot"
 end
 
 rule "37 Aggressive lane change"
+    salience 7
     when
         $v : Violation(type == ViolationType.AGGRESSIVE_LANE_CHANGE)
     then
@@ -149,6 +157,7 @@ rule "37 Aggressive lane change"
 end
 
 rule "38 Improper distance"
+    salience 7
     when
         $v : Violation(type == ViolationType.IMPROPER_DISTANCE)
     then

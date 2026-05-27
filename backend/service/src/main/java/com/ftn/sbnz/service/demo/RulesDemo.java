@@ -67,7 +67,7 @@ public class RulesDemo {
         KieSession session = kc.newKieSession("sanctionsKsession");
 
         Driver d = new Driver("D001", "Marko Markovic", 8, 0);
-        Vehicle car = new Vehicle("NS-123-AB", VehicleCategory.CAR);
+        Vehicle car = new Vehicle(VehicleCategory.CAR);
 
         Violation v = new Violation(d, car, ViolationType.SPEEDING, Location.URBAN);
         v.setSpeedOverLimitKmH(35);
@@ -92,7 +92,7 @@ public class RulesDemo {
         KieSession session = kc.newKieSession("sanctionsKsession");
 
         Driver d = new Driver("D002", "Petar Petrovic", 12, 2);
-        Vehicle car = new Vehicle("NS-456-CD", VehicleCategory.CAR);
+        Vehicle car = new Vehicle(VehicleCategory.CAR);
 
         Violation v1 = new Violation(d, car, ViolationType.SPEEDING, Location.URBAN);
         v1.setSpeedOverLimitKmH(35);
@@ -120,7 +120,7 @@ public class RulesDemo {
         KieSession session = kc.newKieSession("sanctionsKsession");
 
         Driver d = new Driver("D003", "Jovan Jovanovic", 4, 0);
-        Vehicle car = new Vehicle("NS-789-EF", VehicleCategory.CAR);
+        Vehicle car = new Vehicle(VehicleCategory.CAR);
 
         Violation v = new Violation(d, car, ViolationType.ALCOHOL, Location.ANY);
         v.setBloodAlcoholLevel(2.20);
@@ -148,7 +148,7 @@ public class RulesDemo {
         KieSession session = kc.newKieSession("sanctionsKsession");
 
         Driver d = new Driver("D004", "Ana Anic", 6, 4);
-        Vehicle car = new Vehicle("NS-321-GH", VehicleCategory.CAR);
+        Vehicle car = new Vehicle(VehicleCategory.CAR);
 
         Violation vSpeed = new Violation(d, car, ViolationType.SPEEDING, Location.URBAN);
         vSpeed.setSpeedOverLimitKmH(35);
@@ -180,7 +180,7 @@ public class RulesDemo {
         KieSession session = kc.newKieSession("sanctionsKsession");
 
         Driver d = new Driver("D005", "Nikola Nikolic", 10, 0);
-        Vehicle car = new Vehicle("NS-555-IJ", VehicleCategory.CAR);
+        Vehicle car = new Vehicle(VehicleCategory.CAR);
 
         Violation v1 = new Violation(d, car, ViolationType.SPEEDING, Location.URBAN);
         v1.setSpeedOverLimitKmH(35);
@@ -211,7 +211,7 @@ public class RulesDemo {
         KieSession session = kc.newKieSession("sanctionsKsession");
 
         Driver d = new Driver("D006", "Stefan Stefanovic", 7, 0);
-        Vehicle car = new Vehicle("NS-666-KL", VehicleCategory.CAR);
+        Vehicle car = new Vehicle(VehicleCategory.CAR);
 
         Violation v1 = new Violation(d, car, ViolationType.SPEEDING, Location.URBAN);
         v1.setSpeedOverLimitKmH(35);  // rule 3 -> 10-20k

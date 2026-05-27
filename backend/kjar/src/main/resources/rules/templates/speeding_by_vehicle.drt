@@ -1,0 +1,58 @@
+template header
+description
+vehicleCategory
+minSpeedOver
+maxSpeedOver
+article
+severity
+minFine
+maxFine
+points
+banDays
+prisonMin
+prisonMax
+alternativePenalty
+explanation
+
+package sanctions;
+
+import com.ftn.sbnz.model.Violation;
+import com.ftn.sbnz.model.Sanction;
+import com.ftn.sbnz.model.ViolationType;
+import com.ftn.sbnz.model.VehicleCategory;
+import com.ftn.sbnz.model.Severity;
+
+// ============================================================
+// LAYER 1 - SPEEDING (vehicle-category-based) - TEMPLATE GENERATED
+//
+// One rule is produced per CSV row of speeding_by_vehicle.csv.
+// Replaces hardcoded rules 13-16 from qualification_speeding.drl
+// (BUS-specific speed limits per ZOBS art. 45 par. 1 pt. 4).
+// ============================================================
+
+template "speeding-by-vehicle"
+
+rule "Speeding tariff veh @{row.rowNumber} - @{description}"
+    salience 7
+    when
+        $v : Violation(type == ViolationType.SPEEDING,
+                       vehicle.category == VehicleCategory.@{vehicleCategory},
+                       speedOverLimitKmH >= @{minSpeedOver},
+                       speedOverLimitKmH <= @{maxSpeedOver})
+    then
+        Sanction s = Sanction.builder()
+            .violation($v)
+            .lawArticle("@{article}")
+            .severity(Severity.@{severity})
+            .fine(@{minFine}, @{maxFine})
+            .points(@{points})
+            .drivingBanDays(@{banDays})
+            .prison(@{prisonMin}, @{prisonMax})
+            .alternativePenalty(@{alternativePenalty})
+            .build();
+        s.addExplanation("[L1-TEMPLATE] @{explanation}");
+        insert(s);
+        System.out.println("[FIRED-T] Speeding veh @{vehicleCategory} @{minSpeedOver}-@{maxSpeedOver}");
+end
+
+end template

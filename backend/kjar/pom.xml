@@ -53,5 +53,10 @@
             <artifactId>drools-mvel</artifactId>
             <version>${drools.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.drools</groupId>
+            <artifactId>drools-templates</artifactId>
+            <version>${drools.version}</version>
+        </dependency>
     </dependencies>
 </project>

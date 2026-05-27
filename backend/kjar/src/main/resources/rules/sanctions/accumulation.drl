@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 // ============================================================
-// LAYER 3 - ACCUMULATION (sticaj prekrsaja)
+// LAYER 5 - ACCUMULATION (sticaj prekrsaja)
 //
 // Combines all individual Sanctions for one driver into a single SanctionSummary
 // using the rules from the Serbian Law on Misdemeanors:
@@ -25,12 +25,12 @@ import java.util.List;
 //
 //   PRISON - judge sentences between (sum / 2) and the full sum.
 //
-// salience -10 ensures this runs AFTER deduplication (200) and accident
-// escalation (100). The summary therefore reflects deduplicated, escalated values.
+// salience 3 ensures this runs AFTER Dedup (5) and Accident escalation (4).
+// The summary therefore reflects deduplicated, escalated values.
 // ============================================================
 
 rule "Aggregate sanctions per driver (sticaj prekrsaja)"
-    salience -10
+    salience 3
     when
         $driver : Driver()
         not SanctionSummary(driver == $driver)
@@ -116,26 +116,27 @@ rule "Aggregate sanctions per driver (sticaj prekrsaja)"
         summary.setSanctions(sList);
 
         // ----- Build the explanation -----
-        summary.addExplanation("[L3] Aggregated " + sList.size()
+        summary.addExplanation("[L5] Aggregated " + sList.size()
             + " sanction(s) for driver " + $driver.getFullName()
             + " applying 'sticaj prekrsaja' rules:");
-        summary.addExplanation("[L3]   Fines: sum " + sumFineMin + "-" + sumFineMax + " RSD"
-            + (totalFineMax != sumFineMax
+        boolean capApplied = (totalFineMin != sumFineMin) || (totalFineMax != sumFineMax);
+        summary.addExplanation("[L5]   Fines: sum " + sumFineMin + "-" + sumFineMax + " RSD"
+            + (capApplied
                 ? " -> capped to " + totalFineMin + "-" + totalFineMax + " RSD"
                 : " (no cap needed)"));
-        summary.addExplanation("[L3]   Points: " + summary.getTotalPoints());
+        summary.addExplanation("[L5]   Points: " + summary.getTotalPoints());
         if (maxBan > 0) {
-            summary.addExplanation("[L3]   Driving ban: "
+            summary.addExplanation("[L5]   Driving ban: "
                 + summary.getDrivingBanMinDays() + " - " + summary.getDrivingBanMaxDays() + " days"
                 + " (highest individual minimum -> legal cap 5 years)");
         }
         if (sumPrison > 0) {
-            summary.addExplanation("[L3]   Prison: "
+            summary.addExplanation("[L5]   Prison: "
                 + summary.getPrisonMinDays() + " - " + summary.getPrisonMaxDays() + " days");
         }
 
         insert(summary);
-        System.out.println("[FIRED] Layer 3 accumulation - "
+        System.out.println("[FIRED] Layer 5 accumulation - "
             + sList.size() + " sanction(s), total fine "
             + summary.getTotalFineMin() + "-" + summary.getTotalFineMax() + " RSD"
             + ", " + summary.getTotalPoints() + " points");

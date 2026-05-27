@@ -11,6 +11,7 @@ import com.ftn.sbnz.model.Severity;
 // ============================================================
 
 rule "25 Red light violation"
+    salience 7
     when
         $v : Violation(type == ViolationType.RED_LIGHT)
     then
@@ -30,6 +31,7 @@ rule "25 Red light violation"
 end
 
 rule "26 Stop sign ignored"
+    salience 7
     when
         $v : Violation(type == ViolationType.STOP_SIGN_IGNORED)
     then
@@ -45,6 +47,7 @@ rule "26 Stop sign ignored"
 end
 
 rule "27 Yield sign ignored"
+    salience 7
     when
         $v : Violation(type == ViolationType.YIELD_SIGN_IGNORED)
     then
@@ -60,6 +63,7 @@ rule "27 Yield sign ignored"
 end
 
 rule "28 Right of way at intersection"
+    salience 7
     when
         $v : Violation(type == ViolationType.RIGHT_OF_WAY_AT_INTERSECTION)
     then
@@ -76,6 +80,7 @@ rule "28 Right of way at intersection"
 end
 
 rule "29a Right of way for pedestrian (adult)"
+    salience 7
     when
         $v : Violation(type == ViolationType.RIGHT_OF_WAY_FOR_PEDESTRIAN)
         not ViolationContext(violation == $v, pedestrianIsChild == true)
@@ -92,6 +97,7 @@ rule "29a Right of way for pedestrian (adult)"
 end
 
 rule "29b Right of way for pedestrian (child < 12)"
+    salience 7
     when
         $v : Violation(type == ViolationType.RIGHT_OF_WAY_FOR_PEDESTRIAN)
         ViolationContext(violation == $v, pedestrianIsChild == true)

@@ -3,7 +3,7 @@ package sanctions;
 import com.ftn.sbnz.model.Sanction;
 
 // ============================================================
-// LAYER 1.5 - DEDUPLICATION (continuing offense / prekrsaj u produzenom trajanju)
+// LAYER 3 - DEDUPLICATION (continuing offense / prekrsaj u produzenom trajanju)
 //
 // Per the Law on Misdemeanors of the Republic of Serbia:
 //   If the same offense is committed multiple times in a connected time period,
@@ -14,13 +14,13 @@ import com.ftn.sbnz.model.Sanction;
 // and the SAME ZOBS article (i.e. the same qualified offense), they are merged
 // into one.
 //
-// salience 200 - fires after qualification (default 0) but before
-// accident escalation (100) and accumulation (-10), so subsequent
+// salience 5 - fires after qualification (7) and auto-derive ban (6),
+// but before accident escalation (4) and accumulation (3), so subsequent
 // layers see deduplicated facts.
 // ============================================================
 
 rule "Dedup continuing offense"
-    salience 200
+    salience 5
     when
         $s1 : Sanction($driver : violation.driver, $article : lawArticle)
         $s2 : Sanction(this != $s1,
@@ -30,6 +30,6 @@ rule "Dedup continuing offense"
         eval(System.identityHashCode($s2) > System.identityHashCode($s1))
     then
         retract($s2);
-        $s1.addExplanation("[L1.5] Continuing offense - duplicate Sanction for " + $article + " merged");
+        $s1.addExplanation("[L3] Continuing offense - duplicate Sanction for " + $article + " merged");
         System.out.println("[FIRED] Dedup: continuing offense merged (" + $article + ")");
 end
