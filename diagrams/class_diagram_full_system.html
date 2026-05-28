@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8" />
+  <title>ESSP · Klasni dijagram celog sistema</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f7f7f9;
+      color: #1c1f24;
+    }
+    header {
+      padding: 16px 24px;
+      background: #0F2A4A;
+      color: white;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+    header .sub { margin-top: 4px; font-size: 12px; opacity: 0.7; }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      padding: 10px 24px;
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+    .legend .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+    .legend .swatch {
+      width: 12px; height: 12px; border-radius: 2px;
+      border: 1px solid rgba(0,0,0,0.15);
+    }
+    .chip.shared    { background: #eef5ff; color: #1d4ed8; }
+    .chip.shared    .swatch { background: #c7dfff; }
+    .chip.sanctions { background: #fff4e6; color: #b54708; }
+    .chip.sanctions .swatch { background: #fcd9a8; }
+    .chip.fault     { background: #ecfdf5; color: #047857; }
+    .chip.fault     .swatch { background: #bbf3d3; }
+
+    .container {
+      padding: 16px 24px 40px;
+      overflow-x: auto;
+    }
+    .mermaid {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 24px;
+      min-width: 1400px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ESSP — Ekspertni sistem za saobraćajno pravo</h1>
+    <div class="sub">Klasni dijagram celog sistema · model paket sa tri podsekcije (shared, sanctions, fault)</div>
+  </header>
+
+  <div class="legend">
+    <span class="chip shared"><span class="swatch"></span>shared</span>
+    <span class="chip sanctions"><span class="swatch"></span>sanctions (Modul 1)</span>
+    <span class="chip fault"><span class="swatch"></span>fault (Modul 2)</span>
+  </div>
+
+  <div class="container">
+    <pre class="mermaid">
+classDiagram
+  direction TB
+
+  %% ================================================
+  %% SHARED — koriste i sanctions i fault
+  %% ================================================
+  namespace shared {
+    class Vehicle {
+      +String licensePlate
+      +VehicleCategory category
+      +boolean hasLights
+    }
+    class VehicleCategory {
+      &lt;&lt;enumeration&gt;&gt;
+      CAR
+      TRUCK
+      BUS
+      MOTORCYCLE
+    }
+  }
+
+  %% ================================================
+  %% SANCTIONS — Modul 1: izricanje sankcija
+  %% ================================================
+  namespace sanctions {
+    class Driver {
+      +String id [JMBG]
+      +String firstName
+      +String lastName
+      +LocalDate dateOfBirth
+      +DrivingLicense license
+      +isProbationary() boolean
+      +getFullName() String
+    }
+    class DrivingLicense {
+      +String licenseNumber
+      +LocalDate issuedAt
+      +LicenseType type
+      +Set~LicenseCategory~ categories
+      +covers(VehicleCategory) boolean
+    }
+    class LicenseType {
+      &lt;&lt;enumeration&gt;&gt;
+      PERMANENT
+      PROBATIONARY
+    }
+    class LicenseCategory {
+      &lt;&lt;enumeration&gt;&gt;
+      AM A1 A2 A
+      B1 B BE
+      C1 C CE
+      D1 D DE
+      +getVehicleCategory() VehicleCategory
+    }
+    class LicenseRevocation {
+      +Long id
+      +Driver driver
+      +LocalDate revokedAt
+      +int activePointsAtRevocation
+      +boolean probationary
+      +String reason
+    }
+    class PointPenalty {
+      &lt;&lt;event @Role @Timestamp @Expires 730d&gt;&gt;
+      +Long id
+      +Driver driver
+      +int points
+      +Date issuedAt
+      +String externalId
+    }
+    class ActivePointsSnapshot {
+      +Driver driver
+      +int activePoints
+      +LocalDate computedAt
+    }
+    class Violation {
+      +Driver driver
+      +Vehicle vehicle
+      +ViolationType type
+      +Location location
+      +int speedOverLimitKmH
+      +double bloodAlcoholLevel
+    }
+    class ViolationContext {
+      +Violation violation
+      +boolean causedAccident
+      +boolean injuredPersons
+      +boolean pedestrianIsChild
+    }
+    class ViolationType {
+      &lt;&lt;enumeration&gt;&gt;
+      SPEEDING ALCOHOL
+      RED_LIGHT STOP_SIGN_IGNORED
+      OVERTAKING_SOLID_LINE ...
+      NO_LICENSE DRIVING_DURING_BAN
+      FLEEING_SCENE ...
+      ~40 vrednosti
+    }
+    class Location {
+      &lt;&lt;enumeration&gt;&gt;
+      URBAN
+      OPEN_ROAD
+      SCHOOL_ZONE
+      ANY
+    }
+    class Sanction {
+      +Violation violation
+      +String lawArticle
+      +Severity severity
+      +int minFine / maxFine
+      +int baseFine / finalFine
+      +int basePoints / finalPoints
+      +int drivingBanDays
+      +int prisonDaysMin / prisonDaysMax
+      +int communityServiceHoursMin / Max
+      +boolean alternativePenalty
+      +List~String~ explanation
+      +builder() Builder
+    }
+    class SanctionSummary {
+      +Driver driver
+      +List~Sanction~ sanctions
+      +int totalFineMin / totalFineMax
+      +int totalPoints
+      +int drivingBanMinDays / drivingBanMaxDays
+      +int prisonMinDays / prisonMaxDays
+      +List~String~ overallExplanation
+    }
+    class Severity {
+      &lt;&lt;enumeration&gt;&gt;
+      VIOLENT (čl. 329)
+      SEVERE (čl. 330)
+      MAJOR (čl. 331)
+      MODERATE (čl. 332)
+      PETTY (čl. 332a)
+      MINOR (čl. 333)
+      MINIMAL (čl. 334)
+    }
+  }
+
+  %% ================================================
+  %% FAULT — Modul 2: utvrđivanje krivice u nezgodi
+  %% ================================================
+  namespace fault {
+    class Accident {
+      +String id
+      +LocalDateTime occurredAt
+      +AccidentScene scene
+      +List~Participant~ participants
+      +boolean injuredPersons
+      +boolean fatalOutcome
+      +int materialDamageRsd
+    }
+    class AccidentScene {
+      +SignalizationType signalization
+      +Visibility visibility
+      +WeatherCondition weather
+      +RoadCondition roadCondition
+      +int speedLimitKmH
+      +boolean intersection
+    }
+    class Participant {
+      +String id
+      +Driver driver
+      +Vehicle vehicle
+      +Maneuver maneuver
+      +int speedKmH
+      +double distanceToVehicleAhead
+      +boolean underAlcoholInfluence
+      +boolean ignoredRedLight
+    }
+    class ParticipantAction {
+      +Participant participant
+      +ParticipantActionType type
+      +LocalDateTime timestamp
+    }
+    class Blame {
+      +Participant participant
+      +int percentage
+      +BlameType type
+      +List~String~ reasoning
+    }
+    class Fault {
+      +Participant participant
+      +FaultType type
+      +int weight
+      +String lawArticle
+      +boolean causedAccident
+    }
+    class CausedFault {
+      +Participant cause
+      +Fault consequence
+      +String reason
+    }
+    class BlameType {
+      &lt;&lt;enumeration&gt;&gt;
+    }
+    class FaultType {
+      &lt;&lt;enumeration&gt;&gt;
+    }
+    class Maneuver {
+      &lt;&lt;enumeration&gt;&gt;
+    }
+    class ParticipantActionType {
+      &lt;&lt;enumeration&gt;&gt;
+    }
+    class RoadCondition {
+      &lt;&lt;enumeration&gt;&gt;
+    }
+    class SignalizationType {
+      &lt;&lt;enumeration&gt;&gt;
+    }
+    class Visibility {
+      &lt;&lt;enumeration&gt;&gt;
+    }
+    class WeatherCondition {
+      &lt;&lt;enumeration&gt;&gt;
+    }
+  }
+
+  %% =====================================================
+  %% RELACIJE — shared
+  %% =====================================================
+  Vehicle ..> VehicleCategory : type
+
+  %% =====================================================
+  %% RELACIJE — sanctions
+  %% =====================================================
+  Driver "1" o-- "0..1" DrivingLicense : ima
+  DrivingLicense ..> LicenseType : type
+  DrivingLicense "1" *-- "*" LicenseCategory : kategorije
+  LicenseCategory ..> VehicleCategory : mapira
+
+  LicenseRevocation "*" --> "1" Driver
+  PointPenalty       "*" --> "1" Driver
+  ActivePointsSnapshot "*" --> "1" Driver
+
+  Violation       "*" --> "1" Driver
+  Violation       "*" --> "1" Vehicle
+  Violation        ..> ViolationType
+  Violation        ..> Location
+
+  ViolationContext "1" --> "1" Violation
+
+  Sanction         "*" --> "1" Violation
+  Sanction          ..> Severity
+
+  SanctionSummary "1" o-- "*" Sanction
+  SanctionSummary  "*" --> "1" Driver
+
+  %% =====================================================
+  %% RELACIJE — fault
+  %% =====================================================
+  Accident          "1" *-- "1" AccidentScene
+  Accident          "1" o-- "*" Participant
+
+  AccidentScene      ..> SignalizationType
+  AccidentScene      ..> Visibility
+  AccidentScene      ..> WeatherCondition
+  AccidentScene      ..> RoadCondition
+
+  Participant       "*" --> "1" Driver : vozač
+  Participant       "*" --> "1" Vehicle : vozilo
+  Participant        ..> Maneuver
+
+  ParticipantAction "*" --> "1" Participant
+  ParticipantAction  ..> ParticipantActionType
+
+  Blame             "*" --> "1" Participant
+  Blame              ..> BlameType
+
+  Fault             "*" --> "1" Participant
+  Fault              ..> FaultType
+
+  CausedFault       "*" --> "1" Participant : cause
+  CausedFault       "*" --> "1" Fault       : consequence
+    </pre>
+  </div>
+
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      class: {
+        defaultRenderer: 'elk',
+      },
+      themeCSS: `
+        /* Tonirane pozadine za svaki namespace blok */
+        .nodeLabel { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
+        /* shared — plavo */
+        g[id*="shared"] > rect,
+        g.cluster[id*="shared"] > rect {
+          fill: #eef5ff !important;
+          stroke: #93c5fd !important;
+        }
+        /* sanctions — narandžasto */
+        g[id*="sanctions"] > rect,
+        g.cluster[id*="sanctions"] > rect {
+          fill: #fff4e6 !important;
+          stroke: #fbbf6e !important;
+        }
+        /* fault — zeleno */
+        g[id*="fault"] > rect,
+        g.cluster[id*="fault"] > rect {
+          fill: #ecfdf5 !important;
+          stroke: #6ee7b7 !important;
+        }
+      `,
+    });
+  </script>
+</body>
+</html>
