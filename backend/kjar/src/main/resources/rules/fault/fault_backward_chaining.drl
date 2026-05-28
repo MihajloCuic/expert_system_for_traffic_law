@@ -10,24 +10,25 @@ query "directlyAtFault"(String $participantId)
     Fault(participant.id == $participantId, causedAccident == true)
 end
 
+// Non-recursive: covers the direct two-step chain A -> B.
+// Full recursive variant caused infinite loops in Drools because the recursive
+// branch had no provable termination condition for all Participant permutations.
 query "responsibleForAccident"(String $aId, String $bId)
-    // Base case: B is directly at fault and A directly caused B's fault
-    (directlyAtFault($bId;) and CausedFault(cause.id == $aId, consequence.participant.id == $bId))
-    or
-    // Recursive step: A is responsible for $mid and $mid is responsible for B
-    (Participant($mid : id) and responsibleForAccident($aId, $mid;) and responsibleForAccident($mid, $bId;))
+    directlyAtFault($bId;)
+    CausedFault(cause.id == $aId, consequence.participant.id == $bId)
 end
 
 rule "Indirect blame through chain"
     salience -8
     when
-        $cf : CausedFault($causeParticipant : cause, $aId : cause.id)
-        exists Fault(participant.id != $aId, causedAccident == true)
-        not Blame(participant.id == $causeParticipant.id)
+        $a : Participant($aId : id)
+        $b : Participant($bId : id, id != $aId)
+        responsibleForAccident($aId, $bId;)
+        not Blame(participant.id == $aId)
     then
-        Blame blame = new Blame($causeParticipant, 0, BlameType.INDIRECT);
+        Blame blame = new Blame($a, 0, BlameType.INDIRECT);
         blame.addReasoning("[Backward Chaining] caused chain via " + $aId);
         insert(blame);
         System.out.println("[FIRED] BackwardChaining INDIRECT blame for "
-                           + $causeParticipant.getId() + " via " + $aId);
+            + $aId + " via chain to " + $bId);
 end
