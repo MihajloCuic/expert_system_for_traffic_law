@@ -54,11 +54,21 @@ rule "Driving during active license ban (auto-derived from pre-existing revocati
     when
         $v : Violation($driver : driver)
         // `exists` so a driver with N historical revocations still produces
-        // ONE activation, not N. id != null filters out revocations created
-        // earlier in this session by Layer 8 (those are CONSEQUENCES of the
-        // current violations, not pre-existing bans the driver was breaking).
+        // ONE activation per violation. id != null filters out revocations
+        // created earlier in this session by Layer 8 (those are CONSEQUENCES
+        // of the current violations, not pre-existing bans).
         exists LicenseRevocation(driver == $driver, id != null)
-        not Sanction(violation == $v, lawArticle matches ".*330.*pt\\. 8.*")
+        // Guard by DRIVER (not by individual violation). One "driving during
+        // active ban" sanction per ticketing event is enough; without this,
+        // submitting N violations creates N auto-derived sanctions and the
+        // dedup/re-fire cycle becomes an infinite loop.
+        not Sanction(violation.driver == $driver, lawArticle matches ".*330.*pt\\. 8.*")
+        // Mutually exclusive with NO_LICENSE: if the officer asserts the
+        // driver has no license at all (and explicitly logs NO_LICENSE), do
+        // NOT additionally add a "driving during ban" sanction. The two
+        // articles (330 pt 1 vs 330 pt 8) cover the same legal situation
+        // from different angles.
+        not Violation(driver == $driver, type == ViolationType.NO_LICENSE)
     then
         Sanction s = Sanction.builder()
             .violation($v)

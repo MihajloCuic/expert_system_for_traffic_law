@@ -1,0 +1,232 @@
+/* ============================================================
+   PutPravo Design Tokens
+   Colors, type, spacing, radius, shadow, motion.
+   Loaded by every UI kit + preview card.
+   ============================================================ */
+
+/* IBM Plex Sans + IBM Plex Mono (Cyrillic + Latin Extended) */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap&subset=latin,latin-ext,cyrillic,cyrillic-ext");
+
+:root {
+  /* ---------- Brand ---------- */
+  --brand-navy:        oklch(28% 0.07 255);          /* #0F2A4A-ish */
+  --brand-navy-ink:    oklch(22% 0.06 255);
+  --brand-navy-hover:  oklch(24% 0.07 255);
+  --brand-navy-press:  oklch(20% 0.06 255);
+  --brand-accent:      oklch(72% 0.14 70);           /* warm amber for sidebar active edge */
+
+  /* ---------- Surface / Ink ---------- */
+  --surface-0:  oklch(98.5% 0.005 80);               /* page bg — warm off-white */
+  --surface-1:  oklch(100% 0 0);                     /* card */
+  --surface-2:  oklch(96.5% 0.006 80);               /* hover, subtle band */
+  --surface-3:  oklch(94% 0.008 80);                 /* zebra row, table header */
+  --surface-sunken: oklch(96% 0.005 80);
+
+  --ink-0: oklch(20% 0.02 255);                      /* body */
+  --ink-1: oklch(40% 0.02 255);                      /* secondary */
+  --ink-2: oklch(58% 0.015 255);                     /* placeholder, hint */
+  --ink-3: oklch(72% 0.012 255);                     /* disabled */
+  --ink-onbrand: oklch(98% 0.005 80);                /* text on navy */
+
+  /* ---------- Borders ---------- */
+  --border-1: oklch(90% 0.008 255);                  /* divider */
+  --border-2: oklch(80% 0.012 255);                  /* input rest */
+  --border-3: oklch(65% 0.018 255);                  /* input hover */
+
+  /* ---------- Semantic ---------- */
+  --signal-red:        oklch(52% 0.20 25);
+  --signal-red-soft:   oklch(95% 0.025 25);
+  --signal-red-ink:    oklch(38% 0.18 25);
+
+  --warning-amber:     oklch(72% 0.16 65);
+  --warning-amber-soft:oklch(96% 0.03 80);
+  --warning-amber-ink: oklch(48% 0.13 65);
+
+  --success-green:     oklch(55% 0.13 155);
+  --success-green-soft:oklch(95% 0.035 155);
+  --success-green-ink: oklch(38% 0.11 155);
+
+  --info-blue:         oklch(54% 0.12 245);
+  --info-blue-soft:    oklch(96% 0.025 245);
+  --info-blue-ink:     oklch(40% 0.12 245);
+
+  /* ---------- Radius ---------- */
+  --r-1: 4px;
+  --r-2: 6px;
+  --r-3: 10px;
+  --r-pill: 9999px;
+
+  /* ---------- Shadow ---------- */
+  --shadow-1: 0 1px 2px rgba(15,42,74,0.06), 0 1px 1px rgba(15,42,74,0.04);
+  --shadow-2: 0 8px 24px rgba(15,42,74,0.10), 0 2px 4px rgba(15,42,74,0.06);
+  --shadow-focus: 0 0 0 3px oklch(72% 0.14 255 / 0.30);
+  --shadow-focus-red: 0 0 0 3px oklch(72% 0.18 25 / 0.30);
+
+  /* ---------- Spacing (4-base) ---------- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+  --s-9: 56px;
+  --s-10: 72px;
+
+  /* ---------- Type scale ---------- */
+  --t-12: 12px;
+  --t-14: 14px;
+  --t-16: 16px;
+  --t-18: 18px;
+  --t-22: 22px;
+  --t-26: 26px;
+  --t-32: 32px;
+  --t-40: 40px;
+
+  /* ---------- Type families ---------- */
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+
+  /* ---------- Motion ---------- */
+  --ease-civic: cubic-bezier(0.2, 0, 0, 1);
+  --d-fast: 120ms;
+  --d-mid:  180ms;
+  --d-slow: 240ms;
+
+  /* ---------- Layout ---------- */
+  --sidebar-w: 256px;
+  --topbar-h: 56px;
+  --form-col: 720px;
+  --form-col-wide: 1080px;
+}
+
+/* ============================================================
+   Base reset (light-touch — for kit pages, not a global reset)
+   ============================================================ */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: var(--t-16);
+  line-height: 1.5;
+  color: var(--ink-0);
+  background: var(--surface-0);
+  font-feature-settings: "ss01", "cv02"; /* nicer 'a' and 'g' */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+
+/* ============================================================
+   Semantic typography classes
+   ============================================================ */
+
+.pp-display {
+  font-family: var(--font-sans);
+  font-size: var(--t-40);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--brand-navy-ink);
+}
+
+.pp-h1 {
+  font-size: var(--t-32);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--brand-navy-ink);
+  margin: 0;
+}
+
+.pp-h2 {
+  font-size: var(--t-26);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--brand-navy-ink);
+  margin: 0;
+}
+
+.pp-h3 {
+  font-size: var(--t-22);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink-0);
+  margin: 0;
+}
+
+.pp-h4 {
+  font-size: var(--t-18);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ink-0);
+  margin: 0;
+}
+
+.pp-body {
+  font-size: var(--t-16);
+  line-height: 1.55;
+  color: var(--ink-0);
+}
+
+.pp-body-sm {
+  font-size: var(--t-14);
+  line-height: 1.5;
+  color: var(--ink-1);
+}
+
+.pp-caption {
+  font-size: var(--t-12);
+  line-height: 1.45;
+  color: var(--ink-2);
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+.pp-overline {
+  font-size: var(--t-12);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink-1);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.pp-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "zero";
+}
+
+.pp-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ============================================================
+   Focus ring (accessibility)
+   ============================================================ */
+
+.pp-focus:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-color: var(--brand-navy);
+}
+
+/* ============================================================
+   Selection
+   ============================================================ */
+
+::selection {
+  background: oklch(72% 0.14 255 / 0.30);
+  color: var(--brand-navy-ink);
+}

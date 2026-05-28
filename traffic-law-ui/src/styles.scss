@@ -1,1 +1,5 @@
-/* You can add global styles to this file, and also import other style files */
+/* Single entry point: design tokens first (they expose CSS variables),
+   then layout-level globals that read those variables. */
+
+@import 'styles/tokens.css';
+@import 'styles/global.scss';
