@@ -23,7 +23,7 @@ rule "Indirect blame through chain"
     when
         $cf : CausedFault($causeParticipant : cause, $aId : cause.id)
         exists Fault(participant.id != $aId, causedAccident == true)
-        not Blame(participant == $causeParticipant)
+        not Blame(participant.id == $causeParticipant.id)
     then
         Blame blame = new Blame($causeParticipant, 0, BlameType.INDIRECT);
         blame.addReasoning("[Backward Chaining] caused chain via " + $aId);

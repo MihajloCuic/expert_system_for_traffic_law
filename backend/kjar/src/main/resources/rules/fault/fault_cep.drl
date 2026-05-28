@@ -19,8 +19,24 @@ declare ParticipantAction
     @timestamp(timestampMs)
 end
 
-// Rule 1: Participant $p2 entered the intersection within 5 seconds
+// Diagnostic: log every event as it enters the stream (salience 10 fires before domain rules).
+// Prints the epoch-ms timestamp so you can verify exactly what Drools sees.
+rule "CEP Trace all stream events"
+    salience 10
+    when
+        $e : ParticipantAction($p : participant, $type : type)
+             from entry-point "manevriStream"
+    then
+        System.out.println("[CEP-TRACE] stream event: participant=" + $p.getId()
+                           + " type=" + $type
+                           + " tsMs=" + $e.getTimestampMs());
+end
+
+// Rule 1: Participant $p2 entered the intersection within 5 minutes
 // after $p1 already started a turning maneuver → right-of-way violation for $p2.
+// Window is 5 minutes: accident investigation forms have minute-level timestamp
+// granularity; the datetime-local input step is 1 second but operators typically
+// describe events at minute precision.
 rule "CEP Started maneuver before other entered intersection"
     when
         $e1 : ParticipantAction(type == ParticipantActionType.START_TURNING,
@@ -28,21 +44,29 @@ rule "CEP Started maneuver before other entered intersection"
               from entry-point "manevriStream"
         $e2 : ParticipantAction(type == ParticipantActionType.ENTER_INTERSECTION,
                                 $p2 : participant, participant != $p1,
-                                this after[0s, 5s] $e1)
+                                this after[0s, 5m] $e1)
               from entry-point "manevriStream"
     then
+        long diffMs = $e2.getTimestampMs() - $e1.getTimestampMs();
+        System.out.println("[CEP-TRACE] Rule1 match: " + $p1.getId() + " START_TURNING -> "
+                           + $p2.getId() + " ENTER_INTERSECTION"
+                           + " diff=" + diffMs + "ms (" + (diffMs / 1000) + "s)");
         Fault fault = new Fault($p2, FaultType.RIGHT_OF_WAY_VIOLATION, 3, "ZOBS art. 61");
         fault.setCausedAccident(true);
         insert(fault);
         CausedFault cf = new CausedFault($p1, fault,
-                "Ušao u raskrsnicu nakon početka manevra učesnika " + $p1.getId());
+                "Usao u raskrsnicu nakon pocetka manevra uczesnika " + $p1.getId());
         insert(cf);
         System.out.println("[FIRED] CEP maneuver-before-intersection "
                            + $p2.getId() + " after " + $p1.getId());
 end
 
-// Rule 2: Participant did not brake within 2 seconds before the collision
-// → DELAYED_REACTION fault.
+// Rule 2: Participant did not brake within 2 minutes before the collision
+// -> DELAYED_REACTION fault.
+// Window is 2 minutes: same rationale as Rule 1 (minute-level input granularity).
+// Uses participant == $p (object identity, not .id string comparison) to avoid a
+// Drools CEP issue where nested property access inside "not ... from entry-point"
+// is silently dropped, causing the not-pattern to become unconstrained.
 rule "CEP Insufficient reaction time before collision"
     when
         $e2 : ParticipantAction(type == ParticipantActionType.IMPACT,
@@ -53,6 +77,8 @@ rule "CEP Insufficient reaction time before collision"
                               this before[0s, 2s] $e2)
               from entry-point "manevriStream"
     then
+        System.out.println("[CEP-TRACE] Rule2 match: no BRAKE for " + $p.getId()
+                           + " within 2min before IMPACT tsMs=" + $e2.getTimestampMs());
         Fault fault = new Fault($p, FaultType.DELAYED_REACTION, 2, "ZOBS art. 43");
         fault.setCausedAccident(true);
         insert(fault);
