@@ -9,16 +9,12 @@ rule "L2 Blame EXCLUSIVE – only one participant has faults"
     salience -6
     when
         $p : Participant()
-        not Blame(participant == $p)
+        not Blame(participant.id == $p.id)
         Number(intValue() > 0) from accumulate(
             Fault(participant == $p, $w : weight), sum($w)
         )
         Number(intValue() == 0) from accumulate(
-            Participant($other : this, this != $p)
-            and Number(intValue() > 0) from accumulate(
-                Fault(participant == $other, $w2 : weight), sum($w2)
-            ),
-            count(1)
+            Fault(participant != $p, $w2 : weight), sum($w2)
         )
     then
         Blame blame = new Blame($p, 100, BlameType.EXCLUSIVE);
@@ -30,7 +26,7 @@ rule "L2 Blame SHARED – multiple participants have faults"
     salience -6
     when
         $p : Participant()
-        not Blame(participant == $p)
+        not Blame(participant.id == $p.id)
         $weight : Number(intValue() > 0) from accumulate(
             Fault(participant == $p, $w : weight), sum($w)
         )
@@ -51,7 +47,7 @@ rule "L2 Blame NONE – no faults"
     salience -9
     when
         $p : Participant()
-        not Blame(participant == $p)
+        not Blame(participant.id == $p.id)
         Number(intValue() == 0) from accumulate(
             Fault(participant == $p, $w : weight), sum($w)
         )
