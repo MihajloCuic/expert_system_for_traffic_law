@@ -24,13 +24,19 @@ public enum LicenseCategory {
 
     // Truck family
     C1(VehicleCategory.TRUCK),       // medium trucks
+    C1E(VehicleCategory.TRUCK),
     C (VehicleCategory.TRUCK),       // heavy trucks
     CE(VehicleCategory.TRUCK),       // truck + trailer
 
     // Bus family
     D1(VehicleCategory.BUS),         // small buses
+    D1E(VehicleCategory.BUS),
     D (VehicleCategory.BUS),         // full-size buses
-    DE(VehicleCategory.BUS);         // bus + trailer
+    DE(VehicleCategory.BUS),         // bus + trailer
+
+    F(VehicleCategory.TRACTOR),
+    
+    M(VehicleCategory.MOTORCULTIVATOR);
 
     private final VehicleCategory vehicleCategory;
 

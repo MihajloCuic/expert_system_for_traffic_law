@@ -4,5 +4,7 @@ public enum VehicleCategory {
     CAR,
     TRUCK,
     BUS,
-    MOTORCYCLE
+    MOTORCYCLE,
+    TRACTOR,
+    MOTORCULTIVATOR
 }

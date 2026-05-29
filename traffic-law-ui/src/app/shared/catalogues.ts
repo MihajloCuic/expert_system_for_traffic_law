@@ -1,6 +1,6 @@
 /** Driving licence categories per CLAUDE.md §3.3. */
 export const CATEGORIES = [
-  'AM', 'A1', 'A2', 'A', 'B1', 'B', 'BE', 'C1', 'C', 'D1', 'D',
+  'AM', 'A1', 'A2', 'A', 'B1', 'B', 'BE', 'C1', 'C1E', 'C', 'CE', 'D1', 'D1E', 'D', 'DE', 'F', 'M',
 ] as const;
 export type LicenceCategory = (typeof CATEGORIES)[number];
 
