@@ -14,7 +14,7 @@ rule "L2 Blame EXCLUSIVE – only one participant has faults"
             Fault(participant == $p, $w : weight), sum($w)
         )
         Number(intValue() == 0) from accumulate(
-            Fault(participant != $p, $w2 : weight), sum($w2)
+            Fault(participant.id != $p.id, $w2 : weight), sum($w2)
         )
     then
         Blame blame = new Blame($p, 100, BlameType.EXCLUSIVE);

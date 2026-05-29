@@ -792,7 +792,7 @@ export class FaultComponent {
       declaredFaults: [],
       actions: this.showActions()
         ? this.actions()
-            .filter(a => a.participantId.trim() && a.type)
+            .filter(a => a.participantId.trim() && a.type && a.timestamp.trim() !== '')
             .map(a => ({
               participant: { id: a.participantId },
               type:        a.type,
