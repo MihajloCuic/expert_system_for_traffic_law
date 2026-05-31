@@ -49,8 +49,8 @@ rule "Alcohol tariff @{row.rowNumber} - @{description}"
             .prison(@{prisonMin}, @{prisonMax})
             .communityService(@{communityServiceMin}, @{communityServiceMax})
             .alternativePenalty(@{alternativePenalty})
+            .explanation("[L1-TEMPLATE] @{explanation}")
             .build();
-        s.addExplanation("[L1-TEMPLATE] @{explanation}");
         insert(s);
         System.out.println("[FIRED-T] Alcohol BAC @{bacMin}-@{bacMax}");
 end

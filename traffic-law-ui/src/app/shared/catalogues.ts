@@ -72,6 +72,46 @@ export const VIOLATIONS: Array<{ code: string; label: string; clan?: string }> =
   { code: 'IMPROPER_HORN_USE',           label: 'Nepropisna upotreba sirene' },
 ];
 
+/**
+ * Speeding sub-types. Officer ne unosi sirovu brzinu — bira jedan od unapred
+ * definisanih opsega koji 1:1 odgovaraju redovima u backend CSV-u
+ * `speeding_by_location.csv` (tarifna tabela ZOBS čl. 43, 44, 45 + članovi
+ * 329-333). `speedKmH` je reprezentativna vrednost iz opsega koja se šalje
+ * backendu kao `speedOverLimitKmH` — bilo koja vrednost iz opsega bi
+ * aktivirala isto template-generisano pravilo.
+ *
+ * BUS-specifične tarife (speeding_by_vehicle.csv) se NE biraju iz dropdown-a;
+ * one se automatski aktiviraju kad je `Vehicle.category == BUS` jer template
+ * `speeding_by_vehicle.drt` ne uslovljava `location`.
+ */
+export type SpeedingLocation = 'URBAN' | 'OPEN_ROAD' | 'SCHOOL_ZONE';
+export type SpeedingOption = {
+  code: string;
+  label: string;
+  location: SpeedingLocation;
+  /** Reprezentativna brzina iz opsega — šalje se backendu. */
+  speedKmH: number;
+};
+
+export const SPEEDING_OPTIONS: SpeedingOption[] = [
+  // U naselju (limit 50 km/h)
+  { code: 'URBAN_10_20',    label: 'U naselju — 10–20 km/h preko ograničenja',          location: 'URBAN',       speedKmH: 15 },
+  { code: 'URBAN_21_30',    label: 'U naselju — 21–30 km/h preko ograničenja',          location: 'URBAN',       speedKmH: 25 },
+  { code: 'URBAN_31_50',    label: 'U naselju — 31–50 km/h preko ograničenja',          location: 'URBAN',       speedKmH: 40 },
+  { code: 'URBAN_51_70',    label: 'U naselju — 51–70 km/h preko ograničenja',          location: 'URBAN',       speedKmH: 60 },
+  { code: 'URBAN_71_90',    label: 'U naselju — 71–90 km/h preko ograničenja',          location: 'URBAN',       speedKmH: 80 },
+  { code: 'URBAN_OVER_90',  label: 'U naselju — preko 90 km/h (bezobzirna vožnja)',     location: 'URBAN',       speedKmH: 100 },
+  // Van naselja (limit 80 km/h)
+  { code: 'OPEN_10_20',     label: 'Van naselja — 10–20 km/h preko ograničenja',        location: 'OPEN_ROAD',   speedKmH: 15 },
+  { code: 'OPEN_21_40',     label: 'Van naselja — 21–40 km/h preko ograničenja',        location: 'OPEN_ROAD',   speedKmH: 30 },
+  { code: 'OPEN_41_60',     label: 'Van naselja — 41–60 km/h preko ograničenja',        location: 'OPEN_ROAD',   speedKmH: 50 },
+  { code: 'OPEN_61_80',     label: 'Van naselja — 61–80 km/h preko ograničenja',        location: 'OPEN_ROAD',   speedKmH: 70 },
+  { code: 'OPEN_81_100',    label: 'Van naselja — 81–100 km/h preko ograničenja',       location: 'OPEN_ROAD',   speedKmH: 90 },
+  { code: 'OPEN_OVER_100',  label: 'Van naselja — preko 100 km/h (bezobzirna vožnja)',  location: 'OPEN_ROAD',   speedKmH: 110 },
+  // Školska zona (limit 30 km/h)
+  { code: 'SCHOOL_OVER_60', label: 'Školska zona — preko 60 km/h (otežavajuće)',        location: 'SCHOOL_ZONE', speedKmH: 65 },
+];
+
 /** BAC tone bands per CLAUDE.md §2.3 Section 4. */
 export type BacTone = 'green' | 'amber' | 'red';
 export type BacBand = { max: number; tone: BacTone; label: string };

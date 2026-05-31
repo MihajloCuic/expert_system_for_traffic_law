@@ -49,8 +49,8 @@ rule "Speeding tariff veh @{row.rowNumber} - @{description}"
             .drivingBanDays(@{banDays})
             .prison(@{prisonMin}, @{prisonMax})
             .alternativePenalty(@{alternativePenalty})
+            .explanation("[L1-TEMPLATE] @{explanation}")
             .build();
-        s.addExplanation("[L1-TEMPLATE] @{explanation}");
         insert(s);
         System.out.println("[FIRED-T] Speeding veh @{vehicleCategory} @{minSpeedOver}-@{maxSpeedOver}");
 end

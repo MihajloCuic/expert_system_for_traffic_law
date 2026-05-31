@@ -25,8 +25,8 @@ rule "30 Overtaking across solid line"
             .alternativePenalty(true)
             .points(6)
             .drivingBanDays(90)
+            .explanation("[L1] Overtaking across solid line -> 20-40k RSD OR prison <= 30 days + 6 points + 3 months ban")
             .build();
-        s.addExplanation("[L1] Overtaking across solid line -> 20-40k RSD OR prison <= 30 days + 6 points + 3 months ban");
         insert(s);
         System.out.println("[FIRED] 30 Overtaking across solid line");
 end
@@ -41,8 +41,8 @@ rule "31 Overtaking at pedestrian crossing"
             .lawArticle("ZOBS art. 55 par. 3 pt. 9 (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Overtaking at pedestrian crossing -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Overtaking at pedestrian crossing -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 31 Overtaking at pedestrian crossing");
 end
@@ -61,8 +61,8 @@ rule "32 Overtaking on hilltop / sharp curve"
             .alternativePenalty(true)
             .points(6)
             .drivingBanDays(90)
+            .explanation("[L1] Overtaking on hilltop / sharp curve -> 20-40k RSD OR prison <= 30 days + 6 points + 3 months ban")
             .build();
-        s.addExplanation("[L1] Overtaking on hilltop / sharp curve -> 20-40k RSD OR prison <= 30 days + 6 points + 3 months ban");
         insert(s);
         System.out.println("[FIRED] 32 Overtaking on hilltop");
 end
@@ -81,8 +81,8 @@ rule "33 Crossing solid line"
             .alternativePenalty(true)
             .points(6)
             .drivingBanDays(90)
+            .explanation("[L1] Crossing solid line -> 20-40k RSD OR prison <= 30 days + 6 points + 3 months ban")
             .build();
-        s.addExplanation("[L1] Crossing solid line -> 20-40k RSD OR prison <= 30 days + 6 points + 3 months ban");
         insert(s);
         System.out.println("[FIRED] 33 Crossing solid line");
 end
@@ -101,8 +101,8 @@ rule "34 Wrong way on one-way street"
             .fine(10000, 20000)
             .points(2)
             .drivingBanDays(90)
+            .explanation("[L1] Wrong way on one-way street -> 10-20k RSD + 2 points + 3 months ban")
             .build();
-        s.addExplanation("[L1] Wrong way on one-way street -> 10-20k RSD + 2 points + 3 months ban");
         insert(s);
         System.out.println("[FIRED] 34 Wrong way on one-way street");
 end
@@ -118,8 +118,8 @@ rule "35 Forbidden U-turn"
             .severity(Severity.MODERATE)
             .fine(10000, 20000)
             .points(2)
+            .explanation("[L1] Forbidden U-turn -> 10-20k RSD + 2 points")
             .build();
-        s.addExplanation("[L1] Forbidden U-turn -> 10-20k RSD + 2 points");
         insert(s);
         System.out.println("[FIRED] 35 Forbidden U-turn");
 end
@@ -134,8 +134,8 @@ rule "36 Driving in reverse on dangerous spot"
             .lawArticle("ZOBS art. 37 par. 3 (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Driving in reverse on sharp curve, tunnel or railway -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Driving in reverse on sharp curve, tunnel or railway -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 36 Driving in reverse on dangerous spot");
 end
@@ -150,8 +150,8 @@ rule "37 Aggressive lane change"
             .lawArticle("ZOBS art. 32 par. 2-4 (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Aggressive lane change -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Aggressive lane change -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 37 Aggressive lane change");
 end
@@ -166,8 +166,8 @@ rule "38 Improper distance"
             .lawArticle("ZOBS art. 82 (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Improper distance between cars -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Improper distance between cars -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 38 Improper distance");
 end

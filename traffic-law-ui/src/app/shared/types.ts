@@ -41,6 +41,9 @@ export type ViolationSubmission = {
    *  Layer 4 (accident_escalations) rules. */
   causedAccident: boolean;
   violations: string[];                  // array of violation codes
+  /** Optional SPEEDING tier — single code from SPEEDING_OPTIONS (catalogues.ts).
+   *  Empty / undefined means "no speeding violation in this submission". */
+  speeding?: string;
 };
 
 export type ViolationResult = {
