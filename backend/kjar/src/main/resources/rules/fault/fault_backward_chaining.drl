@@ -6,18 +6,34 @@ import com.ftn.sbnz.model.fault.Blame;
 import com.ftn.sbnz.model.fault.BlameType;
 import com.ftn.sbnz.model.fault.CausedFault;
 
+// Bazni slucaj: ucesnik ima direktan propust koji je uzrokovao nesrecu
 query "directlyAtFault"(String $participantId)
     Fault(participant.id == $participantId, causedAccident == true)
 end
 
-// Non-recursive: covers the direct two-step chain A -> B.
-// Full recursive variant caused infinite loops in Drools because the recursive
-// branch had no provable termination condition for all Participant permutations.
+// Rekurzivni query: ucesnik $aId je odgovoran za nesrecu
+// ako je direktno izazvao propust ucesnika $bId (bazni slucaj),
+// ILI ako postoji posrednik $mid kroz kojeg se lanac nastavlja (rekurzivni korak).
+
 query "responsibleForAccident"(String $aId, String $bId)
+    // Bazni slucaj: A je direktno izazvao B-ov propust, i B je direktno kriv
     directlyAtFault($bId;)
     CausedFault(cause.id == $aId, consequence.participant.id == $bId)
+    or
+    // Rekurzivni korak: postoji posrednik $mid
+    // A je odgovoran za $mid, i $mid je odgovoran za B
+    (
+        responsibleForAccident($aId, $mid;)
+        and
+        responsibleForAccident($mid, $bId;)
+        and
+        String($mid != $aId)
+        and
+        String($mid != $bId)
+    )
 end
 
+// Pravilo koje koristi rekurzivni query za izvod posredne krivice
 rule "Indirect blame through chain"
     salience -8
     when

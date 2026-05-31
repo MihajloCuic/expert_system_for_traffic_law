@@ -9,6 +9,8 @@ import java.util.List;
 // ============================================================
 // LAYER 3 – Finalization: attach reasoning to Blame objects
 // Salience -10 ensures this fires after Layer 2.
+// update() zamenjeno sa modify() kako bi Drools ispravno
+// upravljao re-evaluacijom pravila.
 // ============================================================
 
 rule "L3 Finalize blame with fault reasoning"
@@ -21,7 +23,7 @@ rule "L3 Finalize blame with fault reasoning"
             Fault f = (Fault) obj;
             $blame.addReasoning("[L1] " + f.getType() + " – " + f.getLawArticle());
         }
-        update($blame);
+        modify($blame) {}
         System.out.println("[FIRED] Layer3 finalized blame for " + $p.getId()
                            + " with " + $faults.size() + " fault(s)");
 end
