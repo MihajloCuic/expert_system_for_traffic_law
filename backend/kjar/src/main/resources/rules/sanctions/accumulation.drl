@@ -1,143 +1,176 @@
 package sanctions;
 
 import com.ftn.sbnz.model.sanctions.Driver;
+import com.ftn.sbnz.model.sanctions.RawAggregation;
 import com.ftn.sbnz.model.sanctions.Sanction;
 import com.ftn.sbnz.model.sanctions.SanctionSummary;
-
 import java.util.ArrayList;
 import java.util.List;
 
 // ============================================================
-// LAYER 5 - ACCUMULATION (sticaj prekrsaja)
+// LAYER 5 - AGREGACIJA (sticaj prekrsaja) - REFAKTORISAN
 //
-// Combines all individual Sanctions for one driver into a single SanctionSummary
-// using the rules from the Serbian Law on Misdemeanors:
+//   L5-raw    - sirovi sumovi + bazni SanctionSummary + RawAggregation
+//   L5-cap-min  (idempotent guard: RawAggregation.fineMinCapped == false)
+//   L5-cap-max  (idempotent guard: RawAggregation.fineMaxCapped == false)
+//   L5-ban    - postavi zakonski max 5 godina; LHS uslov drivingBanMaxDays == 0
+//               je sam po sebi idempotent (posle modify-ja vise ne matchuje)
+//   L5-prison - dodaj prison explanation (idempotent: prisonExplained == false)
 //
-//   FINES  - sum of all sanctions' fines, BUT the total must be strictly LESS THAN
-//            double the highest single fine. Example: fines 10k+20k+30k = 60k, but 2*30k = 60k,
-//            so capped at 59 999.
-//
-//   POINTS - simple sum.
-//
-//   BAN    - judge can sentence anywhere between:
-//              MIN = the highest single mandatory minimum ban
-//              MAX = 5 years (1825 days), legal cap, only when any ban applies
-//
-//   PRISON - judge sentences between (sum / 2) and the full sum.
-//
-// salience 3 ensures this runs AFTER Dedup (5) and Accident escalation (4).
-// The summary therefore reflects deduplicated, escalated values.
+// Napomena za L5-raw: ne koristi modify() jer $summary i $raw jos nisu u radnoj
+// memoriji - tek se konstruisu i insert-uju. Setteri pre insert-a su validni.
 // ============================================================
 
-rule "Aggregate sanctions per driver (sticaj prekrsaja)"
+rule "L5-raw Aggregate raw sums per driver"
     salience 3
     when
         $driver : Driver()
         not SanctionSummary(driver == $driver)
+        not RawAggregation(driver == $driver)
 
-        // Sum of fines (lower bound of total)
-        $sumFineMin : Number() from accumulate(
-            Sanction(violation.driver == $driver, $fm : finalFine),
-            sum($fm))
-
-        // Sum of fines (upper bound of total)
-        $sumFineMax : Number() from accumulate(
-            Sanction(violation.driver == $driver, $fM : maxFine),
-            sum($fM))
-
-        // Highest single fine (for the cap)
+        $sumFineMin    : Number() from accumulate(
+            Sanction(violation.driver == $driver, $fm : finalFine), sum($fm))
+        $sumFineMax    : Number() from accumulate(
+            Sanction(violation.driver == $driver, $fM : maxFine),   sum($fM))
         $maxIndFineMin : Number() from accumulate(
-            Sanction(violation.driver == $driver, $fm : finalFine),
-            max($fm))
-
+            Sanction(violation.driver == $driver, $fm : finalFine), max($fm))
         $maxIndFineMax : Number() from accumulate(
-            Sanction(violation.driver == $driver, $fM : maxFine),
-            max($fM))
-
-        // Total penalty points
-        $totalPoints : Number() from accumulate(
-            Sanction(violation.driver == $driver, $p : finalPoints),
-            sum($p))
-
-        // Driving ban: highest single mandatory minimum
-        $maxIndBan : Number() from accumulate(
-            Sanction(violation.driver == $driver, $b : drivingBanDays),
-            max($b))
-
-        // Prison: sum of individual maximums (then sum/2 .. sum)
-        $sumPrison : Number() from accumulate(
-            Sanction(violation.driver == $driver, $pd : prisonDaysMax),
-            sum($pd))
-
-        // List of all Sanctions for the explanation trail
-        $list : List() from collect(Sanction(violation.driver == $driver))
+            Sanction(violation.driver == $driver, $fM : maxFine),   max($fM))
+        $totalPoints   : Number() from accumulate(
+            Sanction(violation.driver == $driver, $p  : finalPoints), sum($p))
+        $maxBan        : Number() from accumulate(
+            Sanction(violation.driver == $driver, $b  : drivingBanDays), max($b))
+        $sumPrison     : Number() from accumulate(
+            Sanction(violation.driver == $driver, $pd : prisonDaysMax), sum($pd))
+        $list          : List() from collect(Sanction(violation.driver == $driver))
     then
-        SanctionSummary summary = new SanctionSummary();
-        summary.setDriver($driver);
+        RawAggregation raw = new RawAggregation(
+            $driver,
+            $sumFineMin.intValue(),    $sumFineMax.intValue(),
+            $maxIndFineMin.intValue(), $maxIndFineMax.intValue(),
+            $sumPrison.intValue(),     $maxBan.intValue());
+        insert(raw);
 
-        // ----- FINE: apply sticaj cap (total < 2 x max single fine) -----
-        int sumFineMin = $sumFineMin.intValue();
-        int sumFineMax = $sumFineMax.intValue();
-        int maxIndFineMin = $maxIndFineMin.intValue();
-        int maxIndFineMax = $maxIndFineMax.intValue();
-
-        int totalFineMin = sumFineMin;
-        if (maxIndFineMin > 0 && sumFineMin >= 2 * maxIndFineMin) {
-            totalFineMin = 2 * maxIndFineMin - 1;
-        }
-        int totalFineMax = sumFineMax;
-        if (maxIndFineMax > 0 && sumFineMax >= 2 * maxIndFineMax) {
-            totalFineMax = 2 * maxIndFineMax - 1;
-        }
-        summary.setTotalFineMin(totalFineMin);
-        summary.setTotalFineMax(totalFineMax);
-
-        // ----- POINTS: simple sum -----
-        summary.setTotalPoints($totalPoints.intValue());
-
-        // ----- DRIVING BAN: max of individual minimums; legal cap 5 years -----
-        int maxBan = $maxIndBan.intValue();
-        if (maxBan > 0) {
-            summary.setDrivingBanMinDays(maxBan);
-            summary.setDrivingBanMaxDays(1825);
-        } else {
-            summary.setDrivingBanMinDays(0);
-            summary.setDrivingBanMaxDays(0);
-        }
-
-        // ----- PRISON: sum/2 .. sum -----
-        int sumPrison = $sumPrison.intValue();
-        summary.setPrisonMinDays(sumPrison / 2);
-        summary.setPrisonMaxDays(sumPrison);
-
-        // ----- Sanction list for the explanation trail -----
-        List<Sanction> sList = new ArrayList<>();
-        for (Object o : $list) { sList.add((Sanction) o); }
-        summary.setSanctions(sList);
-
-        // ----- Build the explanation -----
-        summary.addExplanation("[L5] Aggregated " + sList.size()
-            + " sanction(s) for driver " + $driver.getFullName()
-            + " applying 'sticaj prekrsaja' rules:");
-        boolean capApplied = (totalFineMin != sumFineMin) || (totalFineMax != sumFineMax);
-        summary.addExplanation("[L5]   Fines: sum " + sumFineMin + "-" + sumFineMax + " RSD"
-            + (capApplied
-                ? " -> capped to " + totalFineMin + "-" + totalFineMax + " RSD"
-                : " (no cap needed)"));
-        summary.addExplanation("[L5]   Points: " + summary.getTotalPoints());
-        if (maxBan > 0) {
-            summary.addExplanation("[L5]   Driving ban: "
-                + summary.getDrivingBanMinDays() + " - " + summary.getDrivingBanMaxDays() + " days"
-                + " (highest individual minimum -> legal cap 5 years)");
-        }
-        if (sumPrison > 0) {
-            summary.addExplanation("[L5]   Prison: "
-                + summary.getPrisonMinDays() + " - " + summary.getPrisonMaxDays() + " days");
-        }
-
+        SanctionSummary summary = SanctionSummary.builder()
+            .driver($driver)
+            .totalFine($sumFineMin.intValue(), $sumFineMax.intValue())
+            .totalPoints($totalPoints.intValue())
+            .prison($sumPrison.intValue() / 2, $sumPrison.intValue())
+            .drivingBan($maxBan.intValue(), 0)
+            .sanctions(new ArrayList<Sanction>((List<Sanction>)(List) $list))
+            .explanation("[L5] Aggregated " + $list.size()
+                + " sanction(s) for driver " + $driver.getFullName()
+                + " applying 'sticaj prekrsaja' rules:")
+            .explanation("[L5]   Fines (raw sum): "
+                + $sumFineMin.intValue() + "-" + $sumFineMax.intValue() + " RSD")
+            .explanation("[L5]   Points: " + $totalPoints.intValue())
+            .build();
         insert(summary);
-        System.out.println("[FIRED] Layer 5 accumulation - "
-            + sList.size() + " sanction(s), total fine "
-            + summary.getTotalFineMin() + "-" + summary.getTotalFineMax() + " RSD"
-            + ", " + summary.getTotalPoints() + " points");
+        System.out.println("[FIRED] L5-raw aggregation - "
+            + $list.size() + " sanction(s), raw fine "
+            + $sumFineMin.intValue() + "-" + $sumFineMax.intValue() + " RSD, "
+            + $totalPoints.intValue() + " points");
+end
+
+// ============================================================
+// L5-cap-min : cap-uje totalFineMin ako sum >= 2 x maxIndFineMin.
+// Sve izmene $summary (cap + addExplanation) idu u istom modify bloku.
+// $raw flag se postavlja u zasebnom modify bloku jer je razlicit fakat.
+// Idempotency:
+//   - LHS proverava fineMinCapped == false
+//   - RHS modify-uje raw flag na true
+//   - no-loop true kao dodatna mreza
+// ============================================================
+rule "L5-cap Apply sticaj cap on totalFineMin"
+    salience 3
+    no-loop true
+    when
+        $raw : RawAggregation($driver : driver,
+                              fineMinCapped == false,
+                              maxIndFineMin > 0,
+                              $maxIM : maxIndFineMin,
+                              sumFineMin >= 2 * maxIndFineMin)
+        $summary : SanctionSummary(driver == $driver)
+    then
+        int capped = 2 * $maxIM - 1;
+        modify($summary) {
+            setTotalFineMin(capped),
+            addExplanation("[L5-cap] totalFineMin capped to " + capped + " RSD (< 2 x najveca pojedinacna kazna)")
+        }
+        modify($raw) {
+            setFineMinCapped(true)
+        }
+        System.out.println("[FIRED] L5-cap totalFineMin -> " + capped);
+end
+
+// ============================================================
+// L5-cap-max : isti princip za totalFineMax.
+// ============================================================
+rule "L5-cap Apply sticaj cap on totalFineMax"
+    salience 3
+    no-loop true
+    when
+        $raw : RawAggregation($driver : driver,
+                              fineMaxCapped == false,
+                              maxIndFineMax > 0,
+                              $maxIM : maxIndFineMax,
+                              sumFineMax >= 2 * maxIndFineMax)
+        $summary : SanctionSummary(driver == $driver)
+    then
+        int capped = 2 * $maxIM - 1;
+        modify($summary) {
+            setTotalFineMax(capped),
+            addExplanation("[L5-cap] totalFineMax capped to " + capped + " RSD")
+        }
+        modify($raw) {
+            setFineMaxCapped(true)
+        }
+        System.out.println("[FIRED] L5-cap totalFineMax -> " + capped);
+end
+
+// ============================================================
+// L5-ban : postavi zakonski max 5 godina (1825 dana) i dodaj explanation.
+// Idempotency: LHS trazi drivingBanMaxDays == 0 (sirovo stanje iz L5-raw).
+// Posle modify-ja drivingBanMaxDays = 1825, pa LHS vise ne matchuje.
+// ============================================================
+rule "L5-ban Set driving ban legal max and explanation"
+    salience 3
+    no-loop true
+    when
+        $summary : SanctionSummary(drivingBanMinDays > 0,
+                                   drivingBanMaxDays == 0,
+                                   $minBan : drivingBanMinDays)
+    then
+        modify($summary) {
+            setDrivingBanMaxDays(1825),
+            addExplanation("[L5]   Driving ban: " + $minBan + " - 1825 days (najveci pojedinacni minimum -> zakonski cap 5 godina)")
+        }
+        System.out.println("[FIRED] L5-ban driving ban max -> 1825");
+end
+
+// ============================================================
+// L5-prison : dodaj prison explanation kad postoji zatvor.
+// Idempotency preko flag-a na RawAggregation (LHS prisonExplained == false,
+// RHS postavi na true preko modify-ja).
+// addExplanation na $summary ide kroz modify($summary) blok.
+// ============================================================
+rule "L5-prison Add prison explanation"
+    salience 3
+    no-loop true
+    when
+        $raw : RawAggregation($driver : driver,
+                              prisonExplained == false,
+                              sumPrison > 0)
+        $summary : SanctionSummary(driver == $driver,
+                                   prisonMaxDays > 0,
+                                   $pMin : prisonMinDays,
+                                   $pMax : prisonMaxDays)
+    then
+        modify($summary) {
+            addExplanation("[L5]   Prison: " + $pMin + " - " + $pMax + " days")
+        }
+        modify($raw) {
+            setPrisonExplained(true)
+        }
+        System.out.println("[FIRED] L5-prison explanation added");
 end

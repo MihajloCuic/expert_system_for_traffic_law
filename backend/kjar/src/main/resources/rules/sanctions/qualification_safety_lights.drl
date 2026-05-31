@@ -22,8 +22,8 @@ rule "39 Phone usage while driving"
             .lawArticle("ZOBS art. 28 par. 1 (penal art. 332a)")
             .severity(Severity.PETTY)
             .fixedFine(10000)
+            .explanation("[L1] Phone usage while driving -> 10.000 RSD")
             .build();
-        s.addExplanation("[L1] Phone usage while driving -> 10.000 RSD");
         insert(s);
         System.out.println("[FIRED] 39 Phone usage");
 end
@@ -38,8 +38,8 @@ rule "40 No seatbelt"
             .lawArticle("ZOBS art. 30 par. 1 (penal art. 332a)")
             .severity(Severity.PETTY)
             .fixedFine(10000)
+            .explanation("[L1] No seatbelt -> 10.000 RSD")
             .build();
-        s.addExplanation("[L1] No seatbelt -> 10.000 RSD");
         insert(s);
         System.out.println("[FIRED] 40 No seatbelt");
 end
@@ -55,8 +55,8 @@ rule "41 Pedestrian negligence on crossing"
             .severity(Severity.MODERATE)
             .fine(10000, 20000)
             .points(3)
+            .explanation("[L1] Pedestrian negligence on crossing -> 10-20k RSD + 3 points")
             .build();
-        s.addExplanation("[L1] Pedestrian negligence on crossing -> 10-20k RSD + 3 points");
         insert(s);
         System.out.println("[FIRED] 41 Pedestrian negligence");
 end
@@ -71,8 +71,8 @@ rule "42 Child 3-12yo in front seat"
             .lawArticle("ZOBS art. 31 par. 1-4 (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Child 3-12 yo in front seat -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Child 3-12 yo in front seat -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 42 Child in front seat");
 end
@@ -89,8 +89,8 @@ rule "43 No day lights during the day"
             .lawArticle("ZOBS art. 77 par. 1 (penal art. 334)")
             .severity(Severity.MINIMAL)
             .fixedFine(3000)
+            .explanation("[L1] No day lights during the day -> 3.000 RSD")
             .build();
-        s.addExplanation("[L1] No day lights during the day -> 3.000 RSD");
         insert(s);
         System.out.println("[FIRED] 43 No day lights");
 end
@@ -105,8 +105,8 @@ rule "44 Improper use of night lights"
             .lawArticle("ZOBS art. 77 par. 3 (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Improper use of night lights -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Improper use of night lights -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 44 Improper night lights");
 end
@@ -123,8 +123,8 @@ rule "45 Using only position lights at night"
             .fixedFine(10000)
             .points(6)
             .drivingBanDays(90)
+            .explanation("[L1] Using only position lights at night -> 10.000 RSD + 6 points + 3 months ban")
             .build();
-        s.addExplanation("[L1] Using only position lights at night -> 10.000 RSD + 6 points + 3 months ban");
         insert(s);
         System.out.println("[FIRED] 45 Only position lights at night");
 end
@@ -141,8 +141,8 @@ rule "46 No lights in fog"
             .fine(10000, 20000)
             .points(4)
             .drivingBanDays(30)
+            .explanation("[L1] No lights in fog -> 10-20k RSD + 4 points + 30 days ban")
             .build();
-        s.addExplanation("[L1] No lights in fog -> 10-20k RSD + 4 points + 30 days ban");
         insert(s);
         System.out.println("[FIRED] 46 No lights in fog");
 end
@@ -157,8 +157,8 @@ rule "47 Night lights in fog"
             .lawArticle("ZOBS art. 77 par. 1 (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Using night (high-beam) lights in fog -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Using night (high-beam) lights in fog -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 47 Night lights in fog");
 end

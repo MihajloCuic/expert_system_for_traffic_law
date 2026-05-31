@@ -155,6 +155,16 @@ public class Sanction implements Serializable {
         }
         public Builder alternativePenalty(boolean a) { s.alternativePenalty = a; return this; }
 
+        /**
+         * Dodaje liniju u explanation listu nove Sanction-e PRE nego sto
+         * je insertujemo u radnu memoriju. Koristi se umesto direktnog
+         * poziva s.addExplanation(...) van Drools-ovog modify() bloka.
+         */
+        public Builder explanation(String line) {
+            s.explanation.add(line);
+            return this;
+        }
+
         public Sanction build() { return s; }
     }
 }

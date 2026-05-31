@@ -82,4 +82,54 @@ public class SanctionSummary implements Serializable {
     }
 
     public void addExplanation(String line) { this.overallExplanation.add(line); }
+
+    // ============================================================
+    // Builder - koristi se u L5-raw pravilu (accumulation.drl) da se izbegne
+    // pozivanje vise setera na lokalnom faktu pre insert-a. Sve mutacije
+    // novog SanctionSummary objekta su skrivene unutar Builder-a; u DRL-u se
+    // vidi samo fluent chain koji se zavrsava .build().
+    //
+    // Setteri na klasi MORAJU ostati public - kasnija L5 pravila ih koriste
+    // kroz modify($summary) { setX(...) } blokove (Drools sintaksa za izmenu
+    // vec ubacenog fakta).
+    // ============================================================
+    public static Builder builder() { return new Builder(); }
+
+    public static class Builder {
+        private final SanctionSummary s = new SanctionSummary();
+
+        public Builder driver(Driver d) { s.driver = d; return this; }
+
+        public Builder totalFine(int min, int max) {
+            s.totalFineMin = min;
+            s.totalFineMax = max;
+            return this;
+        }
+
+        public Builder totalPoints(int p) { s.totalPoints = p; return this; }
+
+        public Builder drivingBan(int minDays, int maxDays) {
+            s.drivingBanMinDays = minDays;
+            s.drivingBanMaxDays = maxDays;
+            return this;
+        }
+
+        public Builder prison(int minDays, int maxDays) {
+            s.prisonMinDays = minDays;
+            s.prisonMaxDays = maxDays;
+            return this;
+        }
+
+        public Builder sanctions(List<Sanction> list) {
+            s.sanctions = list;
+            return this;
+        }
+
+        public Builder explanation(String line) {
+            s.overallExplanation.add(line);
+            return this;
+        }
+
+        public SanctionSummary build() { return s; }
+    }
 }

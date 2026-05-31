@@ -146,7 +146,7 @@ const ZERO: Range = [0, 0];
                     <lucide-angular [img]="banIcon" [size]="20"/>
                     <div class="stat-body">
                       <div class="stat-label">Zabrana upravljanja</div>
-                      <div class="stat-val pp-mono">{{ fmtRange(totals().ban) }} meseci</div>
+                      <div class="stat-val pp-mono">{{ fmtRange(totals().ban) }} dana</div>
                     </div>
                   </div>
                 }

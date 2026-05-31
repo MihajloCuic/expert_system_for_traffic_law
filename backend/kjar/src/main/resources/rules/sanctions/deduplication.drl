@@ -17,6 +17,9 @@ import com.ftn.sbnz.model.sanctions.Sanction;
 // salience 5 - fires after qualification (7) and auto-derive ban (6),
 // but before accident escalation (4) and accumulation (3), so subsequent
 // layers see deduplicated facts.
+//
+// Mutacija $s1 ide kroz modify() blok (ne direktnim addExplanation pozivom),
+// pa Rete mreza zna za promenu i moze da reevaluira pattern-e.
 // ============================================================
 
 rule "Dedup continuing offense"
@@ -30,6 +33,8 @@ rule "Dedup continuing offense"
         eval(System.identityHashCode($s2) > System.identityHashCode($s1))
     then
         retract($s2);
-        $s1.addExplanation("[L3] Continuing offense - duplicate Sanction for " + $article + " merged");
+        modify($s1) {
+            addExplanation("[L3] Continuing offense - duplicate Sanction for " + $article + " merged")
+        }
         System.out.println("[FIRED] Dedup: continuing offense merged (" + $article + ")");
 end

@@ -5,120 +5,147 @@ import com.ftn.sbnz.model.sanctions.ViolationContext;
 import com.ftn.sbnz.model.sanctions.Severity;
 
 // ============================================================
-// LAYER 4 - ACCIDENT ESCALATIONS (rules 59-65)
-// If the violation that produced the Sanction also caused a traffic accident,
-// the prescribed penalty is upgraded according to ZOBS art. 329-334.
+// LAYER 4 - ESKALACIJA ZBOG IZAZVANE SAOBRACAJNE NEZGODE (rules 59-65)
 //
-// Article 332 and 332a are distinguished by Severity (MODERATE vs PETTY).
-// salience 4 places this between Dedup (5) and Accumulation (3) so that
-// the totals computed by Layer 5 reflect the escalated values.
+// Ako Violation koja je proizvela Sanction takodje izazvala saobracajnu nesrecu,
+// propisana kazna se eskalira prema ZOBS art. 329-334.
+//
+// Razlikovanje art. 332 i 332a ide po Severity (MODERATE vs PETTY).
+//
+// salience 4 - izmedju Dedup (5) i Accumulation (3), tako da agregacija
+// L5 vidi vec eskalirane vrednosti.
+//
+// `no-loop true` sprecava da pravilo reaktivira samo sebe: LHS (Severity)
+// ostaje isti i posle modify-ja, pa bi bez no-loop-a doslo do beskonacne
+// petlje.
 // ============================================================
 
 rule "59 Accident escalation - reckless driving (art. 329)"
     salience 4
+    no-loop true
     when
-        $s : Sanction(severity == Severity.VIOLENT)
+        $s   : Sanction(severity == Severity.VIOLENT)
         $ctx : ViolationContext(violation == $s.violation, causedAccident == true)
     then
-        $s.setMinFine(130000);
-        $s.setMaxFine(150000);
-        $s.setFinalFine(130000);
-        $s.setPrisonDaysMin(45);
-        $s.setPrisonDaysMax(60);
-        $s.setCommunityServiceHoursMin(300);
-        $s.setCommunityServiceHoursMax(360);
-        $s.setAlternativePenalty(true);
-        $s.setFinalPoints(17);
-        $s.setDrivingBanDays(300);
-        $s.addExplanation("[L4 / Accident] Reckless driving caused accident (art. 329) -> 130-150k RSD + 45-60 days prison or 300-360h community service + 17 points + 10 months ban");
+        modify($s) {
+            setMinFine(130000),
+            setMaxFine(150000),
+            setFinalFine(130000),
+            setPrisonDaysMin(45),
+            setPrisonDaysMax(60),
+            setCommunityServiceHoursMin(300),
+            setCommunityServiceHoursMax(360),
+            setAlternativePenalty(true),
+            setFinalPoints(17),
+            setDrivingBanDays(300),
+            addExplanation("[L4 / Accident] Reckless driving caused accident (art. 329) -> 130-150k RSD + 45-60 days prison or 300-360h community service + 17 points + 10 months ban")
+        }
         System.out.println("[FIRED] 59 Accident escalation (art. 329)");
 end
 
 rule "60 Accident escalation - article 330"
     salience 4
+    no-loop true
     when
-        $s : Sanction(severity == Severity.SEVERE)
+        $s   : Sanction(severity == Severity.SEVERE)
         $ctx : ViolationContext(violation == $s.violation, causedAccident == true)
     then
-        $s.setMinFine(120000);
-        $s.setMaxFine(150000);
-        $s.setFinalFine(120000);
-        $s.setPrisonDaysMin(45);
-        $s.setPrisonDaysMax(0);
-        $s.setAlternativePenalty(false);
-        $s.setFinalPoints(16);
-        $s.setDrivingBanDays(300);
-        $s.addExplanation("[L4 / Accident] Article 330 violation caused accident -> 120-150k RSD + at least 45 days prison + 16 points + 10 months ban");
+        modify($s) {
+            setMinFine(120000),
+            setMaxFine(150000),
+            setFinalFine(120000),
+            setPrisonDaysMin(45),
+            setPrisonDaysMax(0),
+            setAlternativePenalty(false),
+            setFinalPoints(16),
+            setDrivingBanDays(300),
+            addExplanation("[L4 / Accident] Article 330 violation caused accident -> 120-150k RSD + at least 45 days prison + 16 points + 10 months ban")
+        }
         System.out.println("[FIRED] 60 Accident escalation (art. 330)");
 end
 
 rule "61 Accident escalation - article 331"
     salience 4
+    no-loop true
     when
-        $s : Sanction(severity == Severity.MAJOR)
+        $s   : Sanction(severity == Severity.MAJOR)
         $ctx : ViolationContext(violation == $s.violation, causedAccident == true)
     then
-        $s.setMinFine(40000);
-        $s.setMaxFine(60000);
-        $s.setFinalFine(40000);
-        $s.setPrisonDaysMin(0);
-        $s.setPrisonDaysMax(60);
-        $s.setAlternativePenalty(true);
-        $s.addExplanation("[L4 / Accident] Article 331 violation caused accident -> 40-60k RSD OR prison <= 60 days");
+        modify($s) {
+            setMinFine(40000),
+            setMaxFine(60000),
+            setFinalFine(40000),
+            setPrisonDaysMin(0),
+            setPrisonDaysMax(60),
+            setAlternativePenalty(true),
+            addExplanation("[L4 / Accident] Article 331 violation caused accident -> 40-60k RSD OR prison <= 60 days")
+        }
         System.out.println("[FIRED] 61 Accident escalation (art. 331)");
 end
 
 rule "62 Accident escalation - article 332"
     salience 4
+    no-loop true
     when
-        $s : Sanction(severity == Severity.MODERATE)
+        $s   : Sanction(severity == Severity.MODERATE)
         $ctx : ViolationContext(violation == $s.violation, causedAccident == true)
     then
-        $s.setMinFine(20000);
-        $s.setMaxFine(40000);
-        $s.setFinalFine(20000);
-        $s.setPrisonDaysMin(0);
-        $s.setPrisonDaysMax(45);
-        $s.setAlternativePenalty(true);
-        $s.addExplanation("[L4 / Accident] Article 332 violation caused accident -> 20-40k RSD OR prison <= 45 days");
+        modify($s) {
+            setMinFine(20000),
+            setMaxFine(40000),
+            setFinalFine(20000),
+            setPrisonDaysMin(0),
+            setPrisonDaysMax(45),
+            setAlternativePenalty(true),
+            addExplanation("[L4 / Accident] Article 332 violation caused accident -> 20-40k RSD OR prison <= 45 days")
+        }
         System.out.println("[FIRED] 62 Accident escalation (art. 332)");
 end
 
 rule "63 Accident escalation - article 332a"
     salience 4
+    no-loop true
     when
-        $s : Sanction(severity == Severity.PETTY)
+        $s   : Sanction(severity == Severity.PETTY)
         $ctx : ViolationContext(violation == $s.violation, causedAccident == true)
     then
-        $s.setMinFine(15000);
-        $s.setMaxFine(30000);
-        $s.setFinalFine(15000);
-        $s.addExplanation("[L4 / Accident] Article 332a violation caused accident -> 15-30k RSD");
+        modify($s) {
+            setMinFine(15000),
+            setMaxFine(30000),
+            setFinalFine(15000),
+            addExplanation("[L4 / Accident] Article 332a violation caused accident -> 15-30k RSD")
+        }
         System.out.println("[FIRED] 63 Accident escalation (art. 332a)");
 end
 
 rule "64 Accident escalation - article 333"
     salience 4
+    no-loop true
     when
-        $s : Sanction(severity == Severity.MINOR)
+        $s   : Sanction(severity == Severity.MINOR)
         $ctx : ViolationContext(violation == $s.violation, causedAccident == true)
     then
-        $s.setMinFine(6000);
-        $s.setMaxFine(18000);
-        $s.setFinalFine(6000);
-        $s.addExplanation("[L4 / Accident] Article 333 violation caused accident -> 6-18k RSD");
+        modify($s) {
+            setMinFine(6000),
+            setMaxFine(18000),
+            setFinalFine(6000),
+            addExplanation("[L4 / Accident] Article 333 violation caused accident -> 6-18k RSD")
+        }
         System.out.println("[FIRED] 64 Accident escalation (art. 333)");
 end
 
 rule "65 Accident escalation - article 334"
     salience 4
+    no-loop true
     when
-        $s : Sanction(severity == Severity.MINIMAL)
+        $s   : Sanction(severity == Severity.MINIMAL)
         $ctx : ViolationContext(violation == $s.violation, causedAccident == true)
     then
-        $s.setMinFine(5000);
-        $s.setMaxFine(15000);
-        $s.setFinalFine(5000);
-        $s.addExplanation("[L4 / Accident] Article 334 violation caused accident -> 5-15k RSD");
+        modify($s) {
+            setMinFine(5000),
+            setMaxFine(15000),
+            setFinalFine(5000),
+            addExplanation("[L4 / Accident] Article 334 violation caused accident -> 5-15k RSD")
+        }
         System.out.println("[FIRED] 65 Accident escalation (art. 334)");
 end

@@ -35,8 +35,8 @@ rule "24 Refusing alcohol test"
             .alternativePenalty(true)
             .points(14)
             .drivingBanDays(240)
+            .explanation("[L1] Refusing alcohol test -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban")
             .build();
-        s.addExplanation("[L1] Refusing alcohol test -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban");
         insert(s);
         System.out.println("[FIRED] 24 Refusing alcohol test");
 end

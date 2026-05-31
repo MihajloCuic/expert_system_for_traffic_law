@@ -24,8 +24,8 @@ rule "25 Red light violation"
             .alternativePenalty(true)
             .points(6)
             .drivingBanDays(90)
+            .explanation("[L1] Red light violation -> 20-40k RSD OR prison <= 30 days + 6 points + 3 months ban")
             .build();
-        s.addExplanation("[L1] Red light violation -> 20-40k RSD OR prison <= 30 days + 6 points + 3 months ban");
         insert(s);
         System.out.println("[FIRED] 25 Red light violation");
 end
@@ -40,8 +40,8 @@ rule "26 Stop sign ignored"
             .lawArticle("ZOBS art. 132 par. 3 (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Stop sign ignored -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Stop sign ignored -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 26 Stop sign ignored");
 end
@@ -56,8 +56,8 @@ rule "27 Yield sign ignored"
             .lawArticle("ZOBS art. 132 par. 3 (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Yield sign ignored -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Yield sign ignored -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 27 Yield sign ignored");
 end
@@ -73,8 +73,8 @@ rule "28 Right of way at intersection"
             .severity(Severity.MODERATE)
             .fine(10000, 20000)
             .points(6)
+            .explanation("[L1] Right of way at intersection -> 10-20k RSD + 6 points")
             .build();
-        s.addExplanation("[L1] Right of way at intersection -> 10-20k RSD + 6 points");
         insert(s);
         System.out.println("[FIRED] 28 Right of way at intersection");
 end
@@ -90,8 +90,8 @@ rule "29a Right of way for pedestrian (adult)"
             .lawArticle("ZOBS art. 99 par. 4 (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Right of way for pedestrian (adult) on crossing -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Right of way for pedestrian (adult) on crossing -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 29a Right of way for pedestrian (adult)");
 end
@@ -107,8 +107,8 @@ rule "29b Right of way for pedestrian (child < 12)"
             .lawArticle("ZOBS art. 99 par. 4 (penal art. 332, child aggravating)")
             .severity(Severity.MODERATE)
             .fine(10000, 20000)
+            .explanation("[L1] Right of way for child pedestrian (< 12 yo) on crossing -> 10-20k RSD (aggravated)")
             .build();
-        s.addExplanation("[L1] Right of way for child pedestrian (< 12 yo) on crossing -> 10-20k RSD (aggravated)");
         insert(s);
         System.out.println("[FIRED] 29b Right of way for pedestrian (child)");
 end

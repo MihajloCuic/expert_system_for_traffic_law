@@ -43,8 +43,8 @@ rule "Driving during active license ban (explicit)"
             .alternativePenalty(true)
             .points(14)
             .drivingBanDays(240)
+            .explanation("[L1] Driving during active ban -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban")
             .build();
-        s.addExplanation("[L1] Driving during active ban -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban");
         insert(s);
         System.out.println("[FIRED] Driving during active ban (explicit)");
 end
@@ -79,8 +79,8 @@ rule "Driving during active license ban (auto-derived from pre-existing revocati
             .alternativePenalty(true)
             .points(14)
             .drivingBanDays(240)
+            .explanation("[L2] Driver has a pre-existing LicenseRevocation -> driving itself is a separate offense under ZOBS art. 330 par. 1 pt. 8 (100-120k RSD + prison + 14 points + 8 months ban)")
             .build();
-        s.addExplanation("[L2] Driver has a pre-existing LicenseRevocation -> driving itself is a separate offense under ZOBS art. 330 par. 1 pt. 8 (100-120k RSD + prison + 14 points + 8 months ban)");
         insert(s);
         System.out.println("[FIRED] Driving during active ban (auto-derived from pre-existing revocation)");
 end

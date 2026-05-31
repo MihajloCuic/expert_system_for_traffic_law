@@ -23,6 +23,7 @@ import com.ftn.sbnz.model.sanctions.Sanction;
 import com.ftn.sbnz.model.sanctions.ViolationType;
 import com.ftn.sbnz.model.sanctions.Location;
 import com.ftn.sbnz.model.sanctions.Severity;
+import com.ftn.sbnz.model.shared.VehicleCategory;
 
 // ============================================================
 // LAYER 1 - SPEEDING (location-based) - TEMPLATE GENERATED
@@ -37,6 +38,7 @@ rule "Speeding tariff loc @{row.rowNumber} - @{description}"
     salience 7
     when
         $v : Violation(type == ViolationType.SPEEDING,
+                       vehicle.category != VehicleCategory.BUS,
                        location == Location.@{location},
                        speedOverLimitKmH >= @{minSpeedOver},
                        speedOverLimitKmH <= @{maxSpeedOver})
@@ -51,8 +53,8 @@ rule "Speeding tariff loc @{row.rowNumber} - @{description}"
             .prison(@{prisonMin}, @{prisonMax})
             .communityService(@{communityServiceMin}, @{communityServiceMax})
             .alternativePenalty(@{alternativePenalty})
+            .explanation("[L1-TEMPLATE] @{explanation}")
             .build();
-        s.addExplanation("[L1-TEMPLATE] @{explanation}");
         insert(s);
         System.out.println("[FIRED-T] Speeding loc @{location} @{minSpeedOver}-@{maxSpeedOver}");
 end

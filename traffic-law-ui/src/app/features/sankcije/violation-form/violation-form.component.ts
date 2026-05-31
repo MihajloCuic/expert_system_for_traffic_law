@@ -10,7 +10,7 @@ import { MultiSelectComponent }  from '../../../shared/ui/multi-select.component
 import { ToggleComponent }       from '../../../shared/ui/toggle.component';
 
 import {
-  CATEGORIES, VEHICLE_TYPES, VIOLATIONS, parseSerbianDecimal,
+  CATEGORIES, VEHICLE_TYPES, VIOLATIONS, SPEEDING_OPTIONS, parseSerbianDecimal,
 } from '../../../shared/catalogues';
 import { LicenceType, ViolationSubmission } from '../../../shared/types';
 import { SankcijeService } from '../sankcije.service';
@@ -179,10 +179,35 @@ import { BacIndicatorComponent } from './bac-indicator.component';
         </app-field>
       </div>
 
-      <!-- Section 6 — Okolnosti -->
+      <!-- Section 6 — Prekoračenje brzine -->
       <div class="section">
         <div class="section-head">
-          <h2><span class="num">6</span> Okolnosti</h2>
+          <h2><span class="num">6</span> Prekoračenje brzine</h2>
+          <span class="meta">{{ speeding() ? 'izabrano' : 'opciono' }}</span>
+        </div>
+        <app-field
+          label="Opseg prekoračenja"
+          hint="Izaberite tačan opseg po članu ZOBS-a; ako nema prekoračenja, ostavite prazno."
+        >
+          <app-select
+            [options]="SPEEDING_OPTS"
+            [value]="speeding()"
+            (valueChange)="speeding.set($event)"
+            placeholder="— nema prekoračenja brzine —"
+          />
+        </app-field>
+        @if (vehicleType() === 'BUS' && speeding()) {
+          <p class="hint-info">
+            Za autobus se automatski primenjuje i posebna tarifa
+            (ZOBS čl. 45 par. 1 tač. 4) — backend će je dodati uz izabrani opseg.
+          </p>
+        }
+      </div>
+
+      <!-- Section 7 — Okolnosti -->
+      <div class="section">
+        <div class="section-head">
+          <h2><span class="num">7</span> Okolnosti</h2>
           <app-toggle
             [on]="causedAccident()"
             label="Vozač je izazvao saobraćajnu nezgodu"
@@ -302,6 +327,7 @@ export class ViolationFormComponent {
   readonly plate          = signal('');
   readonly bac            = signal('');
   readonly violations     = signal<string[]>([]);
+  readonly speeding       = signal<string>('');
   readonly causedAccident = signal(false);
 
   // Server interaction
@@ -316,11 +342,18 @@ export class ViolationFormComponent {
   readonly CAT_OPTIONS       = CATEGORIES.map(c => ({ value: c, label: c }));
   readonly VEHICLE_OPTIONS   = VEHICLE_TYPES.map(v => ({ value: v.code, label: v.label }));
   readonly VIOLATION_OPTIONS = VIOLATIONS.map(v => ({ value: v.code, label: v.label }));
+  /** Prvi red ("") je placeholder = nema prekoračenja brzine. */
+  readonly SPEEDING_OPTS     = [
+    { value: '', label: '— nema prekoračenja brzine —' },
+    ...SPEEDING_OPTIONS.map(o => ({ value: o.code, label: o.label })),
+  ];
 
   readonly bacNumeric = computed(() => parseSerbianDecimal(this.bac()));
 
   readonly summary = computed(() => {
-    const n = this.violations().length + (!this.hasLicence() ? 1 : 0);
+    const n = this.violations().length
+            + (!this.hasLicence() ? 1 : 0)
+            + (this.speeding() ? 1 : 0);
     const fullName = [this.ime(), this.prezime()].filter(Boolean).join(' ') || '—';
     const plateOrDash = this.plate() || '—';
     return `${n} prekršaja · vozač ${fullName} · ${plateOrDash}`;
@@ -331,8 +364,12 @@ export class ViolationFormComponent {
     if (this.jmbg().length !== 13) return false;
     if (this.hasLicence() && !this.licNum()) return false;
     if (!this.vehicleType()) return false;
-    if (this.violations().length === 0 && this.hasLicence() && this.bacNumeric() <= 0.20) {
-      // Nothing to sanction: no licence violation, no BAC, no picked violations
+    // Nothing to sanction: no licence violation, no BAC, no picked violations,
+    // no speeding tier selected.
+    if (this.violations().length === 0
+        && this.hasLicence()
+        && this.bacNumeric() <= 0.20
+        && !this.speeding()) {
       return false;
     }
     return true;
@@ -360,6 +397,7 @@ export class ViolationFormComponent {
       bac: this.bac(),
       causedAccident: this.causedAccident(),
       violations: this.violations(),
+      speeding: this.speeding() || undefined,
     };
 
     this.sankcije.submitViolation(payload).subscribe({

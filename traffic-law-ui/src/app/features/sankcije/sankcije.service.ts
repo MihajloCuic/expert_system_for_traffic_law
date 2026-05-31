@@ -5,7 +5,7 @@ import { Observable, map, of, catchError } from 'rxjs';
 import {
   DriverRecord, LicenceType, Range, ViolationResult, ViolationSubmission,
 } from '../../shared/types';
-import { parseSerbianDecimal } from '../../shared/catalogues';
+import { parseSerbianDecimal, SPEEDING_OPTIONS } from '../../shared/catalogues';
 
 /**
  * The actual HTTP shapes returned by the Spring backend
@@ -224,14 +224,35 @@ function toViolationResult(
 
 /* ----- Small mapping helpers ----- */
 
-function explicitViolations(s: ViolationSubmission): Array<{ type: string }> {
-  const list: Array<{ type: string }> = [];
+type BackendViolationInput = {
+  type: string;
+  location?: string;
+  speedOverLimitKmH?: number;
+};
+
+function explicitViolations(s: ViolationSubmission): BackendViolationInput[] {
+  const list: BackendViolationInput[] = [];
 
   // NO_LICENSE: surfaced when the toggle is OFF
   if (!s.hasLicence) list.push({ type: 'NO_LICENSE' });
 
   // Officer-selected violations (codes already match backend ViolationType)
   for (const code of s.violations) list.push({ type: code });
+
+  // SPEEDING: officer selected a tier from SPEEDING_OPTIONS dropdown.
+  // The chosen code maps to a (location, speedKmH) pair that matches exactly
+  // one row of speeding_by_location.csv on the backend, so the corresponding
+  // template-generated rule fires.
+  if (s.speeding) {
+    const opt = SPEEDING_OPTIONS.find(o => o.code === s.speeding);
+    if (opt) {
+      list.push({
+        type: 'SPEEDING',
+        location: opt.location,
+        speedOverLimitKmH: opt.speedKmH,
+      });
+    }
+  }
 
   return list;
 }

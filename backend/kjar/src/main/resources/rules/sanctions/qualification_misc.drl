@@ -26,8 +26,8 @@ rule "48 Driving without license"
             .alternativePenalty(true)
             .points(14)
             .drivingBanDays(240)
+            .explanation("[L1] Driving without license -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban")
             .build();
-        s.addExplanation("[L1] Driving without license -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban");
         insert(s);
         System.out.println("[FIRED] 48 No license");
 end
@@ -44,8 +44,8 @@ rule "49 Wrong license category"
             .fine(20000, 40000)
             .prison(0, 30)
             .alternativePenalty(true)
+            .explanation("[L1] Wrong license category -> 20-40k RSD OR prison <= 30 days")
             .build();
-        s.addExplanation("[L1] Wrong license category -> 20-40k RSD OR prison <= 30 days");
         insert(s);
         System.out.println("[FIRED] 49 Wrong license category");
 end
@@ -66,8 +66,8 @@ rule "50 Fleeing scene of accident"
             .alternativePenalty(true)
             .points(14)
             .drivingBanDays(240)
+            .explanation("[L1] Fleeing scene of accident -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban")
             .build();
-        s.addExplanation("[L1] Fleeing scene of accident -> 100-120k RSD OR prison >= 15 days + 14 points + 8 months ban");
         insert(s);
         System.out.println("[FIRED] 50 Fleeing scene");
 end
@@ -82,8 +82,8 @@ rule "51 Failure to report accident"
             .lawArticle("ZOBS art. 167 (penal art. 332)")
             .severity(Severity.MODERATE)
             .fine(10000, 20000)
+            .explanation("[L1] Failure to report accident -> 10-20k RSD")
             .build();
-        s.addExplanation("[L1] Failure to report accident -> 10-20k RSD");
         insert(s);
         System.out.println("[FIRED] 51 Failure to report accident");
 end
@@ -100,8 +100,8 @@ rule "52 Parking on pedestrian crossing"
             .lawArticle("ZOBS art. 66 par. 1 pt. 1 (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Parking on pedestrian crossing -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Parking on pedestrian crossing -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 52 Parking on pedestrian crossing");
 end
@@ -116,8 +116,8 @@ rule "53 Parking on disabled spot"
             .lawArticle("ZOBS art. 66 par. 1 pt. 20 (penal art. 332a)")
             .severity(Severity.PETTY)
             .fixedFine(10000)
+            .explanation("[L1] Parking on disabled spot -> 10.000 RSD")
             .build();
-        s.addExplanation("[L1] Parking on disabled spot -> 10.000 RSD");
         insert(s);
         System.out.println("[FIRED] 53 Parking on disabled spot");
 end
@@ -132,8 +132,8 @@ rule "54 Parking blocking traffic"
             .lawArticle("ZOBS art. 62 (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Parking blocking traffic -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Parking blocking traffic -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 54 Parking blocking traffic");
 end
@@ -148,8 +148,8 @@ rule "55 Improper parking"
             .lawArticle("ZOBS (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Improper parking -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Improper parking -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 55 Improper parking");
 end
@@ -166,8 +166,8 @@ rule "56 Not possessing high-visibility vest"
             .lawArticle("ZOBS art. 30 par. 2 (penal art. 334)")
             .severity(Severity.MINIMAL)
             .fixedFine(3000)
+            .explanation("[L1] Not possessing high-visibility vest -> 3.000 RSD")
             .build();
-        s.addExplanation("[L1] Not possessing high-visibility vest -> 3.000 RSD");
         insert(s);
         System.out.println("[FIRED] 56 No high-visibility vest");
 end
@@ -182,8 +182,8 @@ rule "57 Not removing road hazard"
             .lawArticle("ZOBS art. 22 par. 3 (penal art. 334)")
             .severity(Severity.MINIMAL)
             .fixedFine(3000)
+            .explanation("[L1] Not removing dangerous barriers / informing police -> 3.000 RSD")
             .build();
-        s.addExplanation("[L1] Not removing dangerous barriers / informing police -> 3.000 RSD");
         insert(s);
         System.out.println("[FIRED] 57 Not removing road hazard");
 end
@@ -198,8 +198,8 @@ rule "58 Improper horn use"
             .lawArticle("ZOBS art. 59 par. 3 (penal art. 333)")
             .severity(Severity.MINOR)
             .fixedFine(5000)
+            .explanation("[L1] Improper horn use -> 5.000 RSD")
             .build();
-        s.addExplanation("[L1] Improper horn use -> 5.000 RSD");
         insert(s);
         System.out.println("[FIRED] 58 Improper horn use");
 end

@@ -35,7 +35,7 @@ public enum LicenseCategory {
     DE(VehicleCategory.BUS),         // bus + trailer
 
     F(VehicleCategory.TRACTOR),
-    
+
     M(VehicleCategory.MOTORCULTIVATOR);
 
     private final VehicleCategory vehicleCategory;
