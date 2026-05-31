@@ -26,7 +26,8 @@ interface PForm {
 interface AForm {
   participantId: string;
   type: string;
-  timestamp: string;
+  dateStr: string;   // "YYYY-MM-DD"
+  timeStr: string;   // "HH:MM:SS"
 }
 
 // ---- Response model ----
@@ -90,7 +91,7 @@ function defaultParticipant(n: number): PForm {
 }
 
 function defaultAction(): AForm {
-  return { participantId: '', type: '', timestamp: '' };
+  return { participantId: '', type: '', dateStr: '2024-01-01', timeStr: '10:00:00' };
 }
 
 function blameLabel(type: BlameEntry['type']): string {
@@ -101,6 +102,12 @@ function blameLabel(type: BlameEntry['type']): string {
     case 'INDIRECT':    return 'Posredna krivica';
     case 'NONE':        return 'Bez krivice';
   }
+}
+
+function actionTimestamp(a: AForm): string {
+  const d = a.dateStr.trim() || '2024-01-01';
+  const t = a.timeStr.trim() || '00:00:00';
+  return `${d}T${t}`;
 }
 
 function extractFaultError(err: unknown): string {
@@ -289,32 +296,39 @@ function extractFaultError(err: unknown): string {
           </div>
 
           @if (showActions()) {
+            <div class="action-header-row">
+              <span class="ah">ID učesnika</span>
+              <span class="ah">Tip akcije</span>
+              <span class="ah">Datum (YYYY-MM-DD)</span>
+              <span class="ah">Vreme (HH:MM:SS)</span>
+              <span></span>
+            </div>
+
             @for (a of actions(); track $index; let i = $index) {
-              <div class="action-row" [class.mt]="i > 0">
-                <app-field label="ID učesnika">
-                  <app-input
-                    [value]="a.participantId"
-                    (valueChange)="patchA(i, 'participantId', $event)"
-                    placeholder="P1"
-                  />
-                </app-field>
-                <app-field label="Tip akcije">
-                  <app-select
-                    [options]="ACTION_TYPE_OPTIONS"
-                    [value]="a.type"
-                    placeholder="— izaberi tip —"
-                    (valueChange)="patchA(i, 'type', $event)"
-                  />
-                </app-field>
-                <app-field label="Vreme događaja" hint="YYYY-MM-DD HH:MM:SS">
-                  <input
-                    type="datetime-local"
-                    step="1"
-                    class="raw-input"
-                    [value]="a.timestamp"
-                    (input)="onTimestamp(i, $event)"
-                  />
-                </app-field>
+              <div class="action-row">
+                <app-input
+                  [value]="a.participantId"
+                  (valueChange)="patchA(i, 'participantId', $event)"
+                  placeholder="P1"
+                />
+                <app-select
+                  [options]="ACTION_TYPE_OPTIONS"
+                  [value]="a.type"
+                  placeholder="— izaberi tip —"
+                  (valueChange)="patchA(i, 'type', $event)"
+                />
+                <app-input
+                  [mono]="true"
+                  [value]="a.dateStr"
+                  (valueChange)="patchA(i, 'dateStr', $event)"
+                  placeholder="2024-01-01"
+                />
+                <app-input
+                  [mono]="true"
+                  [value]="a.timeStr"
+                  (valueChange)="patchA(i, 'timeStr', $event)"
+                  placeholder="10:00:00"
+                />
                 <div class="action-rm">
                   <app-button variant="ghost" size="sm" [icon]="trashIcon" (onClick)="removeAction(i)">
                     Ukloni
@@ -322,6 +336,17 @@ function extractFaultError(err: unknown): string {
                 </div>
               </div>
             }
+
+            <div class="action-preview">
+              @for (a of actions(); track $index) {
+                @if (a.participantId && a.type) {
+                  <span class="preview-chip">
+                    {{ a.participantId }} · {{ a.type }} · {{ actionTimestamp(a) }}
+                  </span>
+                }
+              }
+            </div>
+
             <div class="add-row">
               <app-button variant="secondary" size="sm" [icon]="plusIcon" (onClick)="addAction()">
                 Dodaj događaj
@@ -401,7 +426,6 @@ function extractFaultError(err: unknown): string {
     </div>
   `,
   styles: `
-    /* ---- Sekcije ---- */
     .section {
       background: var(--surface-1);
       border: 1px solid var(--border-1);
@@ -440,13 +464,11 @@ function extractFaultError(err: unknown): string {
     }
     .meta { font-size: 12px; color: var(--ink-2); }
 
-    /* ---- Grids ---- */
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; }
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px 20px; }
     .mt-12  { margin-top: 12px; }
     .mt-14  { margin-top: 14px; }
 
-    /* ---- Toggle row ---- */
     .toggle-row {
       display: flex;
       flex-wrap: wrap;
@@ -454,7 +476,6 @@ function extractFaultError(err: unknown): string {
       margin-top: 16px;
     }
 
-    /* ---- Participant card ---- */
     .participant-card {
       background: var(--surface-2);
       border: 1px solid var(--border-1);
@@ -490,39 +511,51 @@ function extractFaultError(err: unknown): string {
       font-family: var(--font-mono);
     }
 
-    /* ---- Add row ---- */
     .add-row { margin-top: 14px; }
 
-    /* ---- CEP action row ---- */
+    /* CEP tabela – 5 kolona */
+    .action-header-row {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr 1.2fr 1fr auto;
+      gap: 8px 12px;
+      padding: 0 0 6px 0;
+      border-bottom: 1px solid var(--border-1);
+      margin-bottom: 4px;
+    }
+    .ah {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-2);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
     .action-row {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr auto;
-      gap: 12px 16px;
-      align-items: end;
-      padding: 14px 0;
+      grid-template-columns: 1fr 1.4fr 1.2fr 1fr auto;
+      gap: 8px 12px;
+      align-items: center;
+      padding: 8px 0;
       border-bottom: 1px solid var(--border-1);
     }
-    .action-row.mt { margin-top: 0; }
-    .action-rm { padding-bottom: 2px; }
+    .action-rm { justify-self: end; }
 
-    /* ---- Native datetime-local input ---- */
-    .raw-input {
-      height: 38px;
-      padding: 0 12px;
-      border: 1px solid var(--border-2);
-      border-radius: var(--r-2);
-      background: var(--surface-1);
-      font-family: var(--font-sans);
-      font-size: 14px;
-      color: var(--ink-0);
-      outline: none;
-      width: 100%;
-      transition: border-color var(--d-fast) var(--ease-civic), box-shadow var(--d-fast);
+    .action-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      min-height: 24px;
     }
-    .raw-input:hover  { border-color: var(--border-3); }
-    .raw-input:focus  { border-color: var(--brand-navy); box-shadow: var(--shadow-focus); }
+    .preview-chip {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--ink-1);
+      background: var(--surface-2);
+      border: 1px solid var(--border-1);
+      border-radius: var(--r-1);
+      padding: 2px 8px;
+    }
 
-    /* ---- Hint muted ---- */
     .hint-muted {
       margin: 0;
       padding: 12px 14px;
@@ -533,7 +566,6 @@ function extractFaultError(err: unknown): string {
       color: var(--ink-2);
     }
 
-    /* ---- Sticky action bar ---- */
     .actionbar {
       position: sticky;
       bottom: 0;
@@ -550,7 +582,6 @@ function extractFaultError(err: unknown): string {
     .summary { font-size: 13px; color: var(--ink-1); flex: 1; }
     .summary b { color: var(--ink-0); font-weight: 500; }
 
-    /* ---- Error row ---- */
     .error-row {
       margin-top: 12px;
       padding: 10px 14px;
@@ -560,7 +591,6 @@ function extractFaultError(err: unknown): string {
       font-size: 13px;
     }
 
-    /* ---- Rezultati ---- */
     .result-section { margin-top: 4px; }
     .result-head {
       display: flex;
@@ -582,10 +612,8 @@ function extractFaultError(err: unknown): string {
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 14px;
     }
-
     .blame-card { display: flex; flex-direction: column; gap: 14px; }
     .blame-top  { display: flex; align-items: center; gap: 16px; }
-
     .blame-pct {
       font-size: 52px;
       font-weight: 700;
@@ -600,11 +628,9 @@ function extractFaultError(err: unknown): string {
       color: var(--ink-2);
       letter-spacing: 0;
     }
-
     .blame-meta  { display: flex; flex-direction: column; gap: 6px; }
     .blame-pid   { font-size: 13px; font-family: var(--font-mono); color: var(--ink-1); }
 
-    /* ---- Blame type badges (custom colors) ---- */
     .blame-badge {
       display: inline-flex;
       align-items: center;
@@ -621,12 +647,7 @@ function extractFaultError(err: unknown): string {
     .blame-INDIRECT    { background: oklch(96% 0.02 300);       color: oklch(42% 0.12 300);      border: 1px solid oklch(86% 0.04 300); }
     .blame-NONE        { background: var(--success-green-soft); color: var(--success-green-ink); border: 1px solid oklch(86% 0.06 155); }
 
-    /* ---- Reasoning chain ---- */
-    .blame-reasoning {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
+    .blame-reasoning { display: flex; flex-direction: column; gap: 4px; }
     .reasoning-item {
       font-size: 12px;
       font-family: var(--font-mono);
@@ -638,7 +659,6 @@ function extractFaultError(err: unknown): string {
       word-break: break-word;
     }
 
-    /* ---- Empty state ---- */
     .empty {
       background: var(--surface-1);
       border: 1px dashed var(--border-2);
@@ -653,42 +673,37 @@ function extractFaultError(err: unknown): string {
 export class FaultComponent {
   private readonly http = inject(HttpClient);
 
-  // Lucide icons
   readonly plusIcon  = Plus;
   readonly trashIcon = Trash2;
   readonly sendIcon  = Send;
   readonly resetIcon = RotateCcw;
 
-  // Scena
+  readonly actionTimestamp = actionTimestamp;
+
   readonly signalization = signal('NONE');
   readonly visibility    = signal('GOOD');
   readonly roadCondition = signal('DRY');
   readonly speedLimitKmH = signal('50');
   readonly intersection  = signal(false);
 
-  // Učesnici
   readonly participants = signal<PForm[]>([
     defaultParticipant(1),
     defaultParticipant(2),
   ]);
 
-  // CEP događaji
   readonly showActions = signal(false);
   readonly actions     = signal<AForm[]>([]);
 
-  // Server interakcija
   readonly submitting = signal(false);
   readonly error      = signal<string | null>(null);
   readonly result     = signal<BlameEntry[] | null>(null);
 
-  // Katalozi
   readonly SIGNALIZATION_OPTIONS   = SIGNALIZATION_OPTIONS;
   readonly VISIBILITY_OPTIONS      = VISIBILITY_OPTIONS;
   readonly ROAD_CONDITION_OPTIONS  = ROAD_CONDITION_OPTIONS;
   readonly MANEUVER_OPTIONS        = MANEUVER_OPTIONS;
   readonly ACTION_TYPE_OPTIONS     = ACTION_TYPE_OPTIONS;
 
-  // Helper za template
   readonly blameLabel = blameLabel;
 
   readonly canSubmit = computed(() => {
@@ -704,13 +719,8 @@ export class FaultComponent {
     return `${ps.length} učesnika: ${ids}`;
   });
 
-  // ---- Učesnici ----
-
   addParticipant() {
-    this.participants.update(list => [
-      ...list,
-      defaultParticipant(list.length + 1),
-    ]);
+    this.participants.update(list => [...list, defaultParticipant(list.length + 1)]);
   }
 
   removeParticipant(i: number) {
@@ -723,8 +733,6 @@ export class FaultComponent {
       list.map((p, idx) => idx === i ? { ...p, [field]: val } as PForm : p)
     );
   }
-
-  // ---- CEP akcije ----
 
   addAction() {
     this.actions.update(list => [...list, defaultAction()]);
@@ -739,12 +747,6 @@ export class FaultComponent {
       list.map((a, idx) => idx === i ? { ...a, [field]: val } as AForm : a)
     );
   }
-
-  onTimestamp(i: number, ev: Event) {
-    this.patchA(i, 'timestamp', (ev.target as HTMLInputElement).value);
-  }
-
-  // ---- Slanje ----
 
   submit() {
     if (!this.canSubmit()) return;
@@ -792,13 +794,11 @@ export class FaultComponent {
       declaredFaults: [],
       actions: this.showActions()
         ? this.actions()
-            .filter(a => a.participantId.trim() && a.type && a.timestamp.trim() !== '')
+            .filter(a => a.participantId.trim() && a.type)
             .map(a => ({
               participant: { id: a.participantId },
               type:        a.type,
-              timestamp:   a.timestamp
-                ? new Date(a.timestamp).toISOString().substring(0, 19)
-                : now,
+              timestamp:   actionTimestamp(a),
             }))
         : [],
     };
@@ -816,8 +816,6 @@ export class FaultComponent {
         },
       });
   }
-
-  // ---- Reset ----
 
   reset() {
     this.signalization.set('NONE');
