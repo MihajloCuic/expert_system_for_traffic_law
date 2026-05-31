@@ -91,9 +91,14 @@ public class Module2Controller {
             }
 
             // Insert ParticipantAction events into the CEP entry-point
+            // Insert ParticipantAction events into the CEP entry-point
             EntryPoint manevriStream = session.getEntryPoint("manevriStream");
             if (manevriStream != null && request.getActions() != null) {
                 for (ParticipantAction action : request.getActions()) {
+                    System.out.println("[CONTROLLER] inserting: participant="
+                            + action.getParticipant().getId()
+                            + " type=" + action.getType()
+                            + " tsMs=" + action.getTimestampMs());
                     manevriStream.insert(action);
                 }
             }

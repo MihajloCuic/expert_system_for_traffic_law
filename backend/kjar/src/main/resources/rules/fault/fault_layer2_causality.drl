@@ -5,6 +5,11 @@ import com.ftn.sbnz.model.fault.Fault;
 import com.ftn.sbnz.model.fault.Blame;
 import com.ftn.sbnz.model.fault.BlameType;
 
+// ============================================================
+// LAYER 2 – Causality and blame distribution
+// Salience -6: fires after Layer 1 (salience 0).
+// ============================================================
+
 rule "L2 Blame EXCLUSIVE – only one participant has faults"
     salience -6
     when
@@ -22,7 +27,8 @@ rule "L2 Blame EXCLUSIVE – only one participant has faults"
         System.out.println("[FIRED] Layer2 EXCLUSIVE blame for " + $p.getId());
 end
 
-rule "L2 Blame SHARED – multiple participants have faults"
+// Pravilo za PREDOMINANT: ucesnik ima >= 70% ukupnih tezina
+rule "L2 Blame PREDOMINANT – participant weight >= 70 percent"
     salience -6
     when
         $p : Participant()
@@ -33,14 +39,40 @@ rule "L2 Blame SHARED – multiple participants have faults"
         $grandTotal : Number(intValue() > 0) from accumulate(
             Fault($w3 : weight), sum($w3)
         )
+        // Postoji bar jos jedan ucesnik sa propustima (inace je EXCLUSIVE)
+        Number(intValue() > 0) from accumulate(
+            Fault(participant.id != $p.id, $w4 : weight), sum($w4)
+        )
+        eval( (100.0 * $weight.intValue() / $grandTotal.intValue()) >= 70.0 )
     then
         int pct = (int) Math.round(100.0 * $weight.intValue() / $grandTotal.intValue());
-        BlameType type;
-        if (pct >= 70)  type = BlameType.PREDOMINANT;
-        else            type = BlameType.SHARED;
-        Blame blame = new Blame($p, pct, type);
+        Blame blame = new Blame($p, pct, BlameType.PREDOMINANT);
         insert(blame);
-        System.out.println("[FIRED] Layer2 blame " + $p.getId() + " pct=" + pct + " type=" + type);
+        System.out.println("[FIRED] Layer2 PREDOMINANT blame " + $p.getId() + " pct=" + pct);
+end
+
+// Pravilo za SHARED: ucesnik ima < 70% ukupnih tezina
+rule "L2 Blame SHARED – participant weight under 70 percent"
+    salience -6
+    when
+        $p : Participant()
+        not Blame(participant.id == $p.id)
+        $weight : Number(intValue() > 0) from accumulate(
+            Fault(participant == $p, $w : weight), sum($w)
+        )
+        $grandTotal : Number(intValue() > 0) from accumulate(
+            Fault($w3 : weight), sum($w3)
+        )
+        // Postoji bar jos jedan ucesnik sa propustima (inace je EXCLUSIVE)
+        Number(intValue() > 0) from accumulate(
+            Fault(participant.id != $p.id, $w4 : weight), sum($w4)
+        )
+        eval( (100.0 * $weight.intValue() / $grandTotal.intValue()) < 70.0 )
+    then
+        int pct = (int) Math.round(100.0 * $weight.intValue() / $grandTotal.intValue());
+        Blame blame = new Blame($p, pct, BlameType.SHARED);
+        insert(blame);
+        System.out.println("[FIRED] Layer2 SHARED blame " + $p.getId() + " pct=" + pct);
 end
 
 rule "L2 Blame NONE – no faults"
